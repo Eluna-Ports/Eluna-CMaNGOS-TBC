@@ -38,6 +38,9 @@
 #include "Server/Opcodes.h"
 #include "Chat/Chat.h"
 #include "Anticheat/Anticheat.hpp"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 #define MAX_INBOX_CLIENT_UI_CAPACITY 50
 
@@ -233,6 +236,14 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
 
         items[i] = item;
     }
+
+#ifdef BUILD_ELUNA
+    if (!sEluna->OnSendMail(pl, rc))
+    {
+        pl->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CANT_DO_RIGHT_NOW);
+        return;
+    }
+#endif
 
     m_anticheat->Mail(subject, body, rc);
 
