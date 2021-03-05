@@ -2278,6 +2278,8 @@ inline bool IsProfessionOrRidingSkill(uint32 skill)
     return  IsProfessionSkill(skill) || skill == SKILL_RIDING;
 }
 
+typedef std::vector<std::unique_ptr<SpellEntry>> SpellEntryMap;
+
 class SpellMgr
 {
         friend struct DoSpellProcEvent;
@@ -2721,6 +2723,9 @@ class SpellMgr
         void LoadSpellPetAuras();
         void LoadSpellAreas();
 
+        SpellEntry const* GetSpellEntry(uint32 spellId) const { return spellId < GetMaxSpellId() ? mSpellEntryMap[spellId].get() : nullptr; }
+        uint32 GetMaxSpellId() const { return mSpellEntryMap.size(); }
+
     private:
         SpellChainMap      mSpellChains;
         SpellChainMapNext  mSpellChainsNext;
@@ -2739,6 +2744,8 @@ class SpellMgr
         SpellAreaMap         mSpellAreaMap;
         SpellAreaForAuraMap  mSpellAreaForAuraMap;
         SpellAreaForAreaMap  mSpellAreaForAreaMap;
+
+        SpellEntryMap      mSpellEntryMap;
 };
 
 #define sSpellMgr SpellMgr::Instance()
