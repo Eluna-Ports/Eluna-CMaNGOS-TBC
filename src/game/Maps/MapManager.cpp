@@ -30,6 +30,10 @@
 #include "BattleGround/BattleGroundMgr.h"
 #include <future>
 
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
+
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<MapManager, std::recursive_mutex>
 INSTANTIATE_SINGLETON_2(MapManager, CLASS_LOCK);
 INSTANTIATE_CLASS_MUTEX(MapManager, std::recursive_mutex);
@@ -54,6 +58,7 @@ void MapManager::Initialize()
     CreateContinents();
 
     int num_threads(sWorld.getConfig(CONFIG_UINT32_NUM_MAP_THREADS));
+
     if (num_threads > 0)
         m_updater.activate(num_threads);
 }
@@ -145,6 +150,11 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
             m->Initialize(nullptr); // can be nullptr because already safeguarded by guard
         }
     }
+
+#ifdef BUILD_ELUNA
+    if (Eluna* e = m->GetEluna())
+        e->OnCreate(m);
+#endif
 
     return m;
 }
