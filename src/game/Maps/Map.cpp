@@ -41,6 +41,12 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #include "BattleGround/BattleGroundMgr.h"
 
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#include "LuaEngine/ElunaConfig.h"
+#include "LuaEngine/ElunaLoader.h"
+#endif
+
 #ifdef BUILD_METRICS
  #include "Metric/Metric.h"
 #endif
@@ -53,6 +59,14 @@
 
 Map::~Map()
 {
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetEluna())
+        e->OnDestroy(this);
+
+    if (Eluna* e = GetEluna())
+        if (Instanceable())
+            e->FreeInstanceId(GetInstanceId());
+#endif
     UnloadAll(true);
 
     if (m_persistentState)
@@ -171,6 +185,13 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
       m_variableManager(this), m_defaultLight(GetDefaultMapLight(id))
 {
     m_weatherSystem = new WeatherSystem(this);
+#ifdef BUILD_ELUNA
+    if (sElunaConfig->IsElunaEnabled() && sElunaConfig->ShouldMapLoadEluna(id))
+        {
+            m_elunaInfo = { ElunaInfoKey::MakeKey(GetId(), GetInstanceId()) };
+            sElunaMgr->Create(this, m_elunaInfo);
+        }
+#endif
 }
 
 void Map::Initialize(std::mutex* mmapMutex, bool loadInstanceData /*= true*/)
@@ -467,6 +488,14 @@ bool Map::Add(Player* player)
     NGridType* grid = getNGrid(cell.GridX(), cell.GridY());
     player->GetViewPoint().Event_AddedToWorld(&(*grid)(cell.CellX(), cell.CellY()));
     UpdateObjectVisibility(player, cell, p);
+
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetEluna())
+    {
+        e->OnMapChanged(player);
+        e->OnPlayerEnter(this, player);
+    }
+#endif
 
     if (IsRaid())
         player->RemoveAllGroupBuffsFromCaster(ObjectGuid());
@@ -1032,6 +1061,14 @@ void Map::Update(const uint32& t_diff)
     if (!m_scriptSchedule.empty())
         ScriptsProcess();
 
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetEluna())
+    {
+        e->UpdateEluna(t_diff);
+        e->OnMapUpdate(this, t_diff);
+    }
+#endif
+
     if (i_data)
         i_data->Update(t_diff);
 
@@ -1040,6 +1077,10 @@ void Map::Update(const uint32& t_diff)
 
 void Map::Remove(Player* player, bool remove)
 {
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetEluna())
+        e->OnPlayerLeave(this, player);
+#endif
     if (i_data)
         i_data->OnPlayerLeave(player);
 
@@ -1561,6 +1602,15 @@ void Map::AddObjectToRemoveList(WorldObject* obj)
 {
     MANGOS_ASSERT(obj->GetMapId() == GetId() && obj->GetInstanceId() == GetInstanceId());
 
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetEluna())
+    {
+        if (Creature* creature = obj->ToCreature())
+            e->OnRemove(creature);
+        else if (GameObject* gameobject = obj->ToGameObject())
+            e->OnRemove(gameobject);
+    }
+#endif
     obj->CleanupsBeforeDelete();                            // remove or simplify at least cross referenced links
 
     i_objectsToRemove.insert(obj);
@@ -1760,23 +1810,39 @@ void Map::CreateInstanceData(bool load)
     if (i_data != nullptr)
         return;
 
-    if (Instanceable())
-    {
-        if (InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(GetId()))
-            i_script_id = mInstance->script_id;
-    }
-    else
-    {
-        if (WorldTemplate const* mInstance = ObjectMgr::GetWorldTemplate(GetId()))
-            i_script_id = mInstance->script_id;
-    }
+#ifdef BUILD_ELUNA
+    bool isElunaAI = false;
 
-    if (!i_script_id)
-        return;
+    if (Eluna* e = GetEluna())
+    {
+        i_data = e->GetInstanceData(this);
 
-    i_data = sScriptDevAIMgr.CreateInstanceData(this);
-    if (!i_data)
-        return;
+        if (i_data)
+            isElunaAI = true;
+    }
+    if (!isElunaAI)
+    {
+#endif
+        if (Instanceable())
+        {
+            if (InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(GetId()))
+                i_script_id = mInstance->script_id;
+        }
+        else
+        {
+            if (WorldTemplate const* mInstance = ObjectMgr::GetWorldTemplate(GetId()))
+                i_script_id = mInstance->script_id;
+        }
+
+        if (!i_script_id)
+            return;
+
+        i_data = sScriptDevAIMgr.CreateInstanceData(this);
+        if (!i_data)
+            return;
+#ifdef BUILD_ELUNA
+    }
+#endif
 
     if (load)
     {
