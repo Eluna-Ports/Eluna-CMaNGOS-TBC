@@ -40,6 +40,10 @@
 #include "Maps/MapDataContainer.h"
 #include "Util/UniqueTrackablePtr.h"
 #include "World/WorldStateVariableManager.h"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaValue.h"
+#include "LuaEngine/ElunaMgr.h"
+#endif
 
 #include <bitset>
 #include <functional>
@@ -47,6 +51,9 @@
 
 struct CreatureInfo;
 class Creature;
+#ifdef BUILD_ELUNA
+class Eluna;
+#endif
 class Unit;
 class WorldPacket;
 class InstanceData;
@@ -245,6 +252,7 @@ class Map : public GridRefManager<NGridType>
         bool IsRaid() const { return i_mapEntry && i_mapEntry->IsRaid(); }
         bool IsNoRaid() const { return i_mapEntry && i_mapEntry->IsNonRaidDungeon(); }
         bool IsRaidOrHeroicDungeon() const { return IsRaid() || GetDifficulty() > DUNGEON_DIFFICULTY_NORMAL; }
+        bool IsHeroic() const { return IsRaid() || i_spawnMode >= DUNGEON_DIFFICULTY_HEROIC; }
         bool IsBattleGround() const { return i_mapEntry && i_mapEntry->IsBattleGround(); }
         bool IsBattleArena() const { return i_mapEntry && i_mapEntry->IsBattleArena(); }
         bool IsBattleGroundOrArena() const { return i_mapEntry && i_mapEntry->IsBattleGroundOrArena(); }
@@ -454,6 +462,12 @@ class Map : public GridRefManager<NGridType>
         void RemoveWaypointingNpc(Unit* npc);
 
         void UpdateInfinite(Player& player, UpdateData& updateData, GuidSet& clientGUIDs, WorldObjectSet& visibleNow) const;
+
+#ifdef BUILD_ELUNA
+        Eluna* GetEluna() const {return sElunaMgr -> Get(m_elunaInfo); }
+        LuaVal lua_data = LuaVal({});
+#endif
+
     private:
         void LoadMapAndVMap(int gx, int gy);
 
@@ -604,6 +618,10 @@ class Map : public GridRefManager<NGridType>
         ZoneDynamicInfoMap m_zoneDynamicInfo;
         ZoneDynamicInfoMap m_areaDynamicInfo;
         uint32 m_defaultLight;
+
+#ifdef BUILD_ELUNA
+        ElunaInfo m_elunaInfo;
+#endif
 };
 
 class WorldMap : public Map

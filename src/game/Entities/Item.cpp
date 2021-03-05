@@ -25,6 +25,9 @@
 #include "Server/SQLStorages.h"
 #include "Loot/LootMgr.h"
 #include "Spells/SpellTargetDefines.h"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 void AddItemsSetItem(Player* player, Item* item)
 {
@@ -251,6 +254,13 @@ void Item::RemoveFromWorld()
     Object::RemoveFromWorld();
 }
 
+bool Item::IsNotEmptyBag() const
+{
+    if (Bag const* bag = ToBag())
+        return !bag->IsEmpty();
+    return false;
+}
+
 void Item::UpdateDuration(Player* owner, uint32 diff)
 {
     if (!GetUInt32Value(ITEM_FIELD_DURATION))
@@ -260,6 +270,11 @@ void Item::UpdateDuration(Player* owner, uint32 diff)
 
     if (GetUInt32Value(ITEM_FIELD_DURATION) <= diff && !IsUsedInSpell())
     {
+#ifdef BUILD_ELUNA
+        // used by eluna
+        if (Eluna* e = owner->GetEluna())
+            e->OnExpire(owner, GetProto());
+#endif
         owner->DestroyItem(GetBagSlot(), GetSlot(), true);
         return;
     }

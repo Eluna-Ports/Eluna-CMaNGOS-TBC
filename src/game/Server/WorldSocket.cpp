@@ -35,6 +35,10 @@
 #include "Anticheat/Anticheat.hpp"
 #include "Config/Config.h"
 
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -237,7 +241,12 @@ bool WorldSocket::ProcessIncomingData()
                             self->Close();
                             return;
                         }
-
+#ifdef BUILD_ELUNA
+                        if (!sWorld.GetEluna()->OnPacketReceive(self->m_session, *pct))
+                        {
+                            return;
+                        }
+#endif
                         if (!self->HandleAuthSession(*pct))
                         {
                             self->Close();
@@ -253,6 +262,9 @@ bool WorldSocket::ProcessIncomingData()
                         break;
                     case CMSG_KEEP_ALIVE:
                         DEBUG_LOG("CMSG_KEEP_ALIVE, size: " SIZEFMTD " ", pct->size());
+#ifdef BUILD_ELUNA
+                        sWorld.GetEluna()->OnPacketReceive(self->m_session, *pct);
+#endif
                         break;
                     case CMSG_TIME_SYNC_RESP:
                         pct->SetReceivedTime(std::chrono::steady_clock::now());
