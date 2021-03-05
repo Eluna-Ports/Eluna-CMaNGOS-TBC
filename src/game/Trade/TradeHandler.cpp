@@ -28,6 +28,9 @@
 #include "Spells/Spell.h"
 #include "Social/SocialMgr.h"
 #include "Server/DBCStores.h"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 void WorldSession::SendTradeStatus(TradeStatusInfo const& info) const
 {
@@ -313,6 +316,20 @@ void WorldSession::HandleAcceptTradeOpcode(WorldPacket& recvPacket)
             }
         }
     }
+
+#ifdef BUILD_ELUNA
+    if (Eluna* e = _player->GetEluna())
+    {
+        if (!e->OnTradeAccept(_player, trader))
+        {
+            info.Status = TRADE_STATUS_CLOSE_WINDOW;
+            info.Result = EQUIP_ERR_CANT_DO_RIGHT_NOW;
+            SendTradeStatus(info);
+            my_trade->SetAccepted(false, true);
+            return;
+        }
+    }
+#endif
 
     if (his_trade->IsAccepted())
     {
@@ -640,6 +657,18 @@ void WorldSession::HandleInitiateTradeOpcode(WorldPacket& recvPacket)
         SendTradeStatus(info);
         return;
     }
+
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetPlayer()->GetEluna())
+    {
+        if (!e->OnTradeInit(GetPlayer(), pOther))
+        {
+            info.Status = TRADE_STATUS_BUSY;
+            SendTradeStatus(info);
+            return;
+        }
+    }
+#endif
 
     // OK start trade
     _player->m_trade = new TradeData(_player, pOther);
