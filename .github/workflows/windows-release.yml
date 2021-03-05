@@ -27,23 +27,24 @@ jobs:
           - OPTIONAL_DEFINES: ""
             TYPE: "default"
 
-          - OPTIONAL_DEFINES: "-DBUILD_EXTRACTORS=ON -DBUILD_PLAYERBOTS=ON -DBUILD_AHBOT=ON -DBUILD_RECASTDEMOMOD=ON -DBUILD_GIT_ID=ON"
+          - OPTIONAL_DEFINES: "-DBUILD_ELUNA=ON -DBUILD_EXTRACTORS=ON -DBUILD_PLAYERBOTS=ON -DBUILD_AHBOT=ON -DBUILD_RECASTDEMOMOD=ON -DBUILD_GIT_ID=ON"
             TYPE: "with-all"
 
-          - OPTIONAL_DEFINES: "-DBUILD_PLAYERBOTS=ON -DBUILD_AHBOT=ON"
-            TYPE: "with-playerbot-ahbot"
+          - OPTIONAL_DEFINES: "-DBUILD_ELUNA=ON -DBUILD_PLAYERBOTS=ON -DBUILD_AHBOT=ON"
+            TYPE: "with-eluna-playerbot-ahbot"
 
-          - OPTIONAL_DEFINES: "-DBUILD_PLAYERBOTS=ON"
-            TYPE: "with-playerbot"
+          - OPTIONAL_DEFINES: "-DBUILD_ELUNA=ON -DBUILD_PLAYERBOTS=ON"
+            TYPE: "with-eluna-playerbot"
 
-          - OPTIONAL_DEFINES: "-DBUILD_AHBOT=ON"
-            TYPE: "with-ahbot"
+          - OPTIONAL_DEFINES: "-DBUILD_ELUNA=ON -DBUILD_AHBOT=ON"
+            TYPE: "with-eluna-ahbot"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           path: ${{env.REPO_DIR}}
+          submodules: true
 
       - uses: FranzDiebold/github-env-vars-action@v2
       - name: Create Build Environment
@@ -105,20 +106,20 @@ jobs:
         with:
           name: snapshot-with-all
           path: all_snapshots
-      - name: Download Artifact snapshot-with-playerbot-ahbot
+      - name: Download Artifact snapshot-with-eluna-playerbot-ahbot
         uses: actions/download-artifact@v4
         with:
-          name: snapshot-with-playerbot-ahbot
+          name: snapshot-with-eluna-playerbot-ahbot
           path: all_snapshots
-      - name: Download Artifact snapshot-with-playerbot
+      - name: Download Artifact snapshot-with-eluna-playerbot
         uses: actions/download-artifact@v4
         with:
-          name: snapshot-with-playerbot
+          name: snapshot-with-eluna-playerbot
           path: all_snapshots
-      - name: Download Artifact snapshot-with-ahbot
+      - name: Download Artifact snapshot-with-eluna-ahbot
         uses: actions/download-artifact@v4
         with:
-          name: snapshot-with-ahbot
+          name: snapshot-with-eluna-ahbot
           path: all_snapshots
 
       - name: Get Current Date
