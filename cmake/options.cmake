@@ -7,6 +7,7 @@ option(BUILD_LOGIN_SERVER                   "Build login server"                
 option(BUILD_EXTRACTORS                     "Build map/dbc/vmap/mmap extractors"        OFF)
 option(BUILD_SCRIPTDEV                      "Build ScriptDev. (OFF Speedup build)"      ON)
 option(BUILD_PLAYERBOTS                     "Build Playerbots mod"                      OFF)
+option(BUILD_ELUNA                          "Build Eluna Lua Engine"                    OFF)
 option(BUILD_AHBOT                          "Build Auction House Bot mod"               OFF)
 option(BUILD_METRICS                        "Build Metrics, generate data for Grafana"  OFF)
 option(BUILD_RECASTDEMOMOD                  "Build map/vmap/mmap viewer"                OFF)
@@ -35,6 +36,7 @@ message(STATUS
     BUILD_LOGIN_SERVER      Build login server (auth server)
     BUILD_EXTRACTORS        Build map/dbc/vmap/mmap extractor
 	BUILD_PLAYERBOTS        Build Playerbots mod
+    BUILD_ELUNA             Build Eluna Lua Engine
     BUILD_AHBOT             Build Auction House Bot mod
     BUILD_METRICS           Build Metrics, generate data for Grafana
     BUILD_RECASTDEMOMOD     Build map/vmap/mmap viewer
