@@ -593,6 +593,8 @@ struct ItemPrototype
         return Stackable <= 1 && Class != ITEM_CLASS_CONSUMABLE && Class != ITEM_CLASS_QUEST && !(Flags & ITEM_FLAG_NO_CREATOR) && ItemId != ITEM_HEARTHSTONE_ID;
     }
 
+    bool IsCurrencyToken() const { return BagFamily & BAG_FAMILY_MASK_CURRENCY_TOKENS; }
+
     uint32 GetMaxStackSize() const { return Stackable; }
 
     bool IsPotion() const { return Class == ITEM_CLASS_CONSUMABLE && SubClass == ITEM_SUBCLASS_POTION; }

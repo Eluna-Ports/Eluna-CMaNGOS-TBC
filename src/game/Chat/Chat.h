@@ -95,6 +95,7 @@ class ChatHandler
 
         bool ParseCommands(const char* text);
         ChatCommand const* FindCommand(char const* text);
+        void ExecuteCommand(const char* text);
 
         static bool HasEscapeSequences(const char* message);
         static bool CheckEscapeSequences(const char* message);
@@ -184,7 +185,6 @@ class ChatHandler
         void SendGlobalSysMessage(const char* str) const;
 
         bool SetDataForCommandInTable(ChatCommand* commandTable, const char* text, uint32 security, std::string const& help);
-        void ExecuteCommand(const char* text);
         void LogCommand(char const* fullcmd) const;
 
         bool ShowHelpForCommand(ChatCommand* table, const char* cmd);
