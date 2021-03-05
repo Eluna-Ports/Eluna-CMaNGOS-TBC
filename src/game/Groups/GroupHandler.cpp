@@ -29,6 +29,9 @@
 #include "Social/SocialMgr.h"
 #include "Util/Util.h"
 #include "Anticheat/Anticheat.hpp"
+#ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
+#endif
 
 /* differeces from off:
     -you can uninvite yourself - is is useful
@@ -206,6 +209,11 @@ void WorldSession::HandleGroupAcceptOpcode(WorldPacket& /*recv_data*/)
         SendPartyResult(PARTY_OP_INVITE, "", ERR_GROUP_FULL);
         return;
     }
+
+#ifdef BUILD_ELUNA
+    if (!sEluna->OnMemberAccept(group, GetPlayer()))
+        return;
+#endif
 
     Player* leader = sObjectMgr.GetPlayer(group->GetLeaderGuid());
 
