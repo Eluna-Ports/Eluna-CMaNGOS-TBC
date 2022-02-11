@@ -7767,6 +7767,11 @@ int32 Unit::SpellBaseDamageBonusDone(SpellSchoolMask schoolMask)
 
     if (GetTypeId() == TYPEID_PLAYER)
     {
+#ifdef BUILD_SOLOCRAFT
+        // Base value
+        DoneAdvertisedBenefit += ((Player*)this)->GetBaseSpellPowerBonus();
+#endif
+
         // Damage bonus from stats
         AuraList const& mDamageDoneOfStatPercent = GetAurasByType(SPELL_AURA_MOD_SPELL_DAMAGE_OF_STAT_PERCENT);
         for (auto i : mDamageDoneOfStatPercent)
@@ -7918,6 +7923,11 @@ int32 Unit::SpellBaseHealingBonusDone(SpellSchoolMask schoolMask)
     // Healing bonus of spirit, intellect and strength
     if (GetTypeId() == TYPEID_PLAYER)
     {
+#ifdef BUILD_SOLOCRAFT
+        // Base value
+        AdvertisedBenefit += ((Player*)this)->GetBaseSpellPowerBonus();
+#endif
+
         // Healing bonus from stats
         AuraList const& mHealingDoneOfStatPercent = GetAurasByType(SPELL_AURA_MOD_SPELL_HEALING_OF_STAT_PERCENT);
         for (auto i : mHealingDoneOfStatPercent)
