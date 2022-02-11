@@ -162,6 +162,11 @@ if (BUILD_ELUNA)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/game/LuaEngine/extensions DESTINATION ${BIN_DIR}/lua_scripts)
 endif()
 
+# Define BUILD_SOLOCRAFT if needed
+if (BUILD_SOLOCRAFT)
+add_definitions(-DBUILD_SOLOCRAFT)
+endif()
+
 if(MSVC)
   install(FILES $<TARGET_PDB_FILE:${EXECUTABLE_NAME}> DESTINATION ${BIN_DIR} CONFIGURATIONS Debug)
 endif()

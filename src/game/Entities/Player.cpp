@@ -633,6 +633,10 @@ Player::Player(WorldSession* session): Unit(), m_taxiTracker(*this), m_mover(thi
     for (unsigned int& i : m_enchantmentFlatMod)
         i = 0;
 
+#ifdef BUILD_SOLOCRAFT
+    m_baseSpellPower = 0;
+#endif
+
     // Honor System
     m_lastHonorUpdateTime = time(nullptr);
 
@@ -17609,7 +17613,11 @@ void Player::_SaveStats()
     stmt.addFloat(GetFloatValue(PLAYER_SPELL_CRIT_PERCENTAGE1));
     stmt.addUInt32(GetUInt32Value(UNIT_FIELD_ATTACK_POWER));
     stmt.addUInt32(GetUInt32Value(UNIT_FIELD_RANGED_ATTACK_POWER));
+#ifndef BUILD_SOLOCRAFT
     stmt.addUInt32(GetUInt32Value(PLAYER_FIELD_MOD_HEALING_DONE_POS));
+#else
+    stmt.addUInt32(GetBaseSpellPowerBonus());
+#endif
 
     stmt.Execute();
 }

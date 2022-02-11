@@ -79,6 +79,18 @@ bool Player::UpdateStats(Stats stat)
     return true;
 }
 
+#ifdef BUILD_SOLOCRAFT
+void Player::ApplySpellPowerBonus(int32 amount, bool apply)
+{
+    m_baseSpellPower += apply ? amount : -amount;
+
+    // For speed just update for client
+    ApplyModUInt32Value(PLAYER_FIELD_MOD_HEALING_DONE_POS, amount, apply);
+    for (int i = SPELL_SCHOOL_HOLY; i < MAX_SPELL_SCHOOL; ++i)
+        ApplyModUInt32Value(PLAYER_FIELD_MOD_DAMAGE_DONE_POS + i, amount, apply);
+}
+#endif
+
 void Player::UpdateSpellHealingBonus()
 {
     // Magic damage modifiers implemented in Unit::SpellDamageBonusDone
