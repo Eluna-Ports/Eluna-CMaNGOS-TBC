@@ -82,6 +82,10 @@ endforeach()
 add_definitions(-DBUILD_ELUNA -DCMANGOS -DTBC)
 endif()
 
+if(BUILD_SOLOCRAFT)
+add_definitions(-DBUILD_SOLOCRAFT)
+endif()
+
 if(NOT BUILD_DEPRECATED_PLAYERBOT)
   # exclude Playerbot folder
   set (EXCLUDE_DIR "PlayerBot/")

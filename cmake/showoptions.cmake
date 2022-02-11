@@ -55,6 +55,12 @@ else()
   message(STATUS "Build Eluna LuaEngine : No  (default)")
 endif()
 
+if(BUILD_SOLOCRAFT)
+  message(STATUS "Build SoloCraft Mod   : Yes")
+else()
+  message(STATUS "Build SoloCraft Mod   : No  (default)")
+endif()
+
 if(BUILD_AHBOT)
   message(STATUS "Build AHBot           : Yes")
 else()
