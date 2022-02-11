@@ -1677,6 +1677,9 @@ class Player : public Unit
         void UpdateAttackPowerAndDamage(bool ranged = false) override;
         void UpdateShieldBlockValue();
         void UpdateDamagePhysical(WeaponAttackType attType) override;
+#ifdef BUILD_SOLOCRAFT
+        void ApplySpellPowerBonus(int32 amount, bool apply);
+#endif
         void UpdateSpellHealingBonus();
         void UpdateSpellDamageBonus();
         void ApplyRatingMod(CombatRating cr, int32 value, bool apply);
@@ -1691,6 +1694,9 @@ class Player : public Unit
         float GetSpellCritFromIntellect() const;
         float GetRatingMultiplier(CombatRating cr) const;
         float GetRatingBonusValue(CombatRating cr) const;
+#ifdef BUILD_SOLOCRAFT
+        uint32 GetBaseSpellPowerBonus() const { return m_baseSpellPower; }
+#endif
 
         void UpdateBlockPercentage();
         void UpdateCritPercentage(WeaponAttackType attType);
@@ -2455,6 +2461,9 @@ class Player : public Unit
 
         float m_auraBaseMod[BASEMOD_END][MOD_END];
         int16 m_baseRatingValue[MAX_COMBAT_RATING];
+#ifdef BUILD_SOLOCRAFT
+        uint16 m_baseSpellPower;
+#endif
 
         uint32 m_enchantmentFlatMod[MAX_ATTACK]; // TODO: Stat system - incorporate generically, exposes a required hidden weapon stat that does not apply when unarmed
 

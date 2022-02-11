@@ -786,6 +786,10 @@ void WorldSession::LogoutPlayer()
         sEluna->OnLogout(_player);
 #endif
 
+#ifdef BUILD_SOLOCRAFT
+        CharacterDatabase.PExecute("DELETE FROM custom_solocraft_character_stats WHERE GUID = %u", _player->GetGUIDLow());
+#endif
+
         ///- Remove the player from the world
         // the player may not be in the world when logging out
         // e.g if he got disconnected during a transfer to another map
