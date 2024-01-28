@@ -46,6 +46,7 @@
 #include "MotionGenerators/PathFinder.h"
 #ifdef BUILD_ELUNA
 #include "LuaEngine/LuaEngine.h"
+#include "LuaEngine/ElunaConfig.h"
 #include "LuaEngine/ElunaEventMgr.h"
 #endif
 
@@ -2088,8 +2089,19 @@ void WorldObject::SetMap(Map* map)
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
 #ifdef BUILD_ELUNA
-    if (!elunaEvents)
-        elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
+    //@todo: possibly look into cleanly clearing all pending events from previous map's event mgr.
+
+    // if multistate, delete elunaEvents and set to nullptr. events shouldn't move across states.
+    // in single state, the timed events should move across maps
+    if (!sElunaConfig->IsElunaCompatibilityMode())
+    {
+        delete elunaEvents;
+        elunaEvents = nullptr; // set to null in case map doesn't use eluna
+    }
+
+    if (Eluna* e = map->GetEluna())
+        if (!elunaEvents)
+            elunaEvents = new ElunaEventProcessor(e, this);
 #endif
 }
 
@@ -3323,3 +3335,13 @@ bool WorldObject::CheckAndIncreaseCastCounter()
     ++m_castCounter;
     return true;
 }
+
+#ifdef BUILD_ELUNA
+Eluna* WorldObject::GetEluna() const
+{
+    if (IsInWorld())
+        return GetMap()->GetEluna();
+
+    return nullptr;
+}
+#endif
