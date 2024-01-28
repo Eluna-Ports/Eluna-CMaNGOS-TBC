@@ -238,10 +238,13 @@ void WorldSession::HandleSendMail(WorldPacket& recv_data)
     }
 
 #ifdef BUILD_ELUNA
-    if (!sEluna->OnSendMail(pl, rc))
+    if (Eluna* e = pl->GetEluna())
     {
-        pl->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CANT_DO_RIGHT_NOW);
-        return;
+        if (!e->OnSendMail(pl, rc))
+        {
+            pl->SendMailResult(0, MAIL_SEND, MAIL_ERR_EQUIP_ERROR, EQUIP_ERR_CANT_DO_RIGHT_NOW);
+            return;
+        }
     }
 #endif
 

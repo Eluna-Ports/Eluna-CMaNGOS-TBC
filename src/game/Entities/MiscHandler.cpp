@@ -67,7 +67,8 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnRepop(GetPlayer());
+    if (Eluna* e = GetPlayer()->GetEluna())
+        e->OnRepop(GetPlayer());
 #endif
 
     // this is spirit release confirm?

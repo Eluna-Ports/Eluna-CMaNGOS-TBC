@@ -222,7 +222,8 @@ bool Weather::SendWeatherForPlayersInZone(Map const* _map)
     ///- Log the event
     LogWeatherState(state);
 #ifdef BUILD_ELUNA
-    sEluna->OnChange(this, m_zone, state, m_grade);
+    if (Eluna* e = sWorld.GetEluna())
+        e->OnChange(this, m_zone, state, m_grade);
 #endif
     return true;
 }

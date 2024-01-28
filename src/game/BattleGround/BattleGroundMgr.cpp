@@ -519,9 +519,6 @@ uint32 BattleGroundMgr::CreateBattleGround(BattleGroundTypeId bgTypeId, bool IsA
     // add bg to update list
     AddBattleGround(bg->GetInstanceId(), bg->GetTypeId(), bg);
 
-#ifdef BUILD_ELUNA
-    sEluna->OnBGCreate(bg, bgTypeId, bg->GetInstanceId());
-#endif
     // return some not-null value, bgTypeId is good enough for me
     return bgTypeId;
 }

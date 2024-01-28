@@ -180,7 +180,8 @@ void Creature::AddToWorld()
     if (!IsInWorld())
     {
 #ifdef BUILD_ELUNA
-        sEluna->OnAddToWorld(this);
+        if (Eluna* e = GetEluna())
+            e->OnAddToWorld(this);
 #endif
         if (IsUnit())
             GetMap()->GetObjectsStore().insert<Creature>(GetObjectGuid(), (Creature*)this);
@@ -222,7 +223,8 @@ void Creature::RemoveFromWorld()
     if (IsInWorld())
     {
 #ifdef BUILD_ELUNA
-        sEluna->OnRemoveFromWorld(this);
+        if (Eluna* e = GetEluna())
+            e->OnRemoveFromWorld(this);
 #endif
         if (IsUnit())
             GetMap()->GetObjectsStore().erase<Creature>(GetObjectGuid(), (Creature*)nullptr);
