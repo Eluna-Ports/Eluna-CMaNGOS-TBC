@@ -783,7 +783,8 @@ void WorldSession::LogoutPlayer()
 #endif
 
 #ifdef BUILD_ELUNA
-        sEluna->OnLogout(_player);
+        if (Eluna* e = sWorld.GetEluna())
+            e->OnLogout(_player);
 #endif
 
 #ifdef BUILD_SOLOCRAFT
@@ -1229,10 +1230,9 @@ void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg) co
 void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket& packet)
 {
 #ifdef BUILD_ELUNA
-    if (!sEluna->OnPacketReceive(this, packet))
-    {
-        return;
-    }
+    if (Eluna* e = sWorld.GetEluna())
+        if (!e->OnPacketReceive(this, packet))
+            return;
 #endif
     // need prevent do internal far teleports in handlers because some handlers do lot steps
     // or call code that can do far teleports in some conditions unexpectedly for generic way work code

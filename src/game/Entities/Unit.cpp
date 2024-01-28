@@ -1184,12 +1184,11 @@ void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEn
     if (killer)
     {
 #ifdef BUILD_ELUNA
+        // used by eluna
         if (Creature* killerCre = killer->ToCreature())
-        {
-            // used by eluna
             if (Player* killed = victim->ToPlayer())
-                sEluna->OnPlayerKilledByCreature(killerCre, killed);
-        }
+                if(Eluna* e = killed->GetEluna())
+                    e->OnPlayerKilledByCreature(killerCre, killed);
 #endif
 
         // Call KilledUnit for creatures
@@ -1266,7 +1265,8 @@ void Unit::Kill(Unit* killer, Unit* victim, DamageEffectType damagetype, SpellEn
             }
 #ifdef BUILD_ELUNA
             // used by eluna
-            sEluna->OnPVPKill(responsiblePlayer, playerVictim);
+            if (Eluna* e = responsiblePlayer->GetEluna())
+                e->OnPVPKill(responsiblePlayer, playerVictim);
 #endif
         }
     }
@@ -1460,7 +1460,8 @@ void Unit::JustKilledCreature(Unit* killer, Creature* victim, Player* responsibl
         if (BattleGround* bg = responsiblePlayer->GetBattleGround())
             bg->HandleKillUnit(victim, responsiblePlayer);
         // used by eluna
-        sEluna->OnCreatureKill(responsiblePlayer, victim);
+        if (Eluna* e = responsiblePlayer->GetEluna())
+            e->OnCreatureKill(responsiblePlayer, victim);
     }
 #else
         if (BattleGround* bg = responsiblePlayer->GetBattleGround())
@@ -8619,7 +8620,8 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
 #ifdef BUILD_ELUNA
     // used by eluna
     if (GetTypeId() == TYPEID_PLAYER)
-        sEluna->OnPlayerEnterCombat(ToPlayer(), enemy);
+        if (Eluna* e = ToPlayer()->GetEluna())
+            e->OnPlayerEnterCombat(ToPlayer(), enemy);
 #endif
 }
 
@@ -8648,7 +8650,8 @@ void Unit::ClearInCombat()
 #ifdef BUILD_ELUNA
     // used by eluna
     if (GetTypeId() == TYPEID_PLAYER)
-        sEluna->OnPlayerLeaveCombat(ToPlayer());
+        if (Eluna* e = ToPlayer()->GetEluna())
+            e->OnPlayerLeaveCombat(ToPlayer());
 #endif
 
     if (GetTypeId() == TYPEID_PLAYER)
