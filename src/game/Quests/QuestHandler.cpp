@@ -466,7 +466,8 @@ void WorldSession::HandleQuestLogRemoveQuest(WorldPacket& recv_data)
             _player->SetQuestStatus(quest, QUEST_STATUS_NONE);
 #ifdef BUILD_ELUNA
             // used by eluna
-            sEluna->OnQuestAbandon(_player, quest);
+            if (Eluna* e = _player->GetEluna())
+                e->OnQuestAbandon(_player, quest);
 #endif
         }
 
