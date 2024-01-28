@@ -1818,7 +1818,8 @@ uint32 BattleGroundMgr::CreateBattleGround(BattleGroundTypeId bgTypeId, bool IsA
     AddBattleGround(bg->GetInstanceId(), bg->GetTypeId(), bg);
 
 #ifdef BUILD_ELUNA
-    sEluna->OnBGCreate(bg, bgTypeId, bg->GetInstanceId());
+    if (Eluna* e = bg->GetBgMap()->GetEluna())
+        e->OnBGCreate(bg, bgTypeId, bg->GetInstanceId());
 #endif
     // return some not-null value, bgTypeId is good enough for me
     return bgTypeId;

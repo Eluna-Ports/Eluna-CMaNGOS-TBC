@@ -54,6 +54,15 @@ void MapManager::Initialize()
     CreateContinents();
 
     int num_threads(sWorld.getConfig(CONFIG_UINT32_NUM_MAP_THREADS));
+
+    bool compatMode = sWorld.getConfig(CONFIG_BOOL_ELUNA_COMPATIBILITY);
+    if (compatMode && num_threads > 1)
+    {
+        // Force 1 thread for Eluna if compatibility mode is enabled. Compatibility mode is single state and does not allow more update threads.
+        sLog.outError("Map update threads set to %i, when Eluna in compatibility mode only allows 1, changing to 1", num_threads);
+        num_threads = 1;
+    }
+
     if (num_threads > 0)
         m_updater.activate(num_threads);
 }
