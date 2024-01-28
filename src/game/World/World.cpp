@@ -70,6 +70,7 @@
 
 #ifdef BUILD_ELUNA
 #include "LuaEngine/LuaEngine.h"
+#include "LuaEngine/ElunaConfig.h"
 #include "LuaEngine/ElunaLoader.h"
 #endif
 
@@ -876,10 +877,8 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_SUNSREACH_COUNTER, "Sunsreach.CounterMax", 10000);
 #ifdef BUILD_ELUNA
-    setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", true);
-    setConfig(CONFIG_BOOL_ELUNA_COMPATIBILITY, "Eluna.CompatibilityMode", true);
-    if (eluna && reload)
-        eluna->OnConfigLoad(reload);
+    if (Eluna* e = GetEluna())
+        e->OnConfigLoad(reload);
 #endif
 
 #ifdef BUILD_SOLOCRAFT
@@ -1134,8 +1133,10 @@ void World::SetInitialWorldSettings()
     sLog.outString();
 
 #ifdef BUILD_ELUNA
-    bool elunaEnabled = sWorld.getConfig(CONFIG_BOOL_ELUNA_ENABLED);
-    if (elunaEnabled)
+    sLog.outString("Loading Eluna config...");
+    sElunaConfig->Initialize();
+
+    if (sElunaConfig->IsElunaEnabled())
     {
         ///- Initialize Lua Engine
         sLog.outString("Loading Lua scripts...");
@@ -1636,13 +1637,12 @@ void World::SetInitialWorldSettings()
     // lua state begins uninitialized
     eluna = nullptr;
 
-    if (elunaEnabled)
+    if (sElunaConfig->IsElunaEnabled())
     {
         ///- Run eluna scripts.
         sLog.outString("Starting Eluna world state...");
         // use map id -1 for the global Eluna state
-        bool compatMode = sWorld.getConfig(CONFIG_BOOL_ELUNA_COMPATIBILITY);
-        eluna = new Eluna(nullptr, compatMode);
+        eluna = new Eluna(nullptr, sElunaConfig->IsElunaCompatibilityMode());
 
         eluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
         sLog.outString();
@@ -1841,10 +1841,10 @@ void World::Update(uint32 diff)
 
 #ifdef BUILD_ELUNA
     ///- used by eluna
-    if (eluna)
+    if (Eluna* e = GetEluna())
     {
-        eluna->UpdateEluna(diff);
-        eluna->OnWorldUpdate(diff);
+        e->UpdateEluna(diff);
+        e->OnWorldUpdate(diff);
     }
 #endif
     ///- Update groups with offline leaders
@@ -2308,8 +2308,8 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
     }
 #ifdef BUILD_ELUNA
     ///- Used by Eluna
-    if (eluna)
-        eluna->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
+    if (Eluna* e = GetEluna())
+        e->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
 #endif
 }
 
@@ -2356,8 +2356,8 @@ void World::ShutdownCancel()
 
 #ifdef BUILD_ELUNA
     ///- Used by Eluna
-    if (eluna)
-        eluna->OnShutdownCancel();
+    if (Eluna* e = GetEluna())
+        e->OnShutdownCancel();
 #endif
 }
 

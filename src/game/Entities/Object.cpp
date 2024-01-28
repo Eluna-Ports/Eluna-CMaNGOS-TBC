@@ -46,6 +46,7 @@
 #include "MotionGenerators/PathFinder.h"
 #ifdef BUILD_ELUNA
 #include "LuaEngine/LuaEngine.h"
+#include "LuaEngine/ElunaConfig.h"
 #include "LuaEngine/ElunaEventMgr.h"
 #endif
 
@@ -2061,8 +2062,7 @@ void WorldObject::SetMap(Map* map)
 
     // if multistate, delete elunaEvents and set to nullptr. events shouldn't move across states.
     // in single state, the timed events should move across maps
-    bool compatMode = sWorld.getConfig(CONFIG_BOOL_ELUNA_COMPATIBILITY);
-    if (!compatMode)
+    if (!sElunaConfig->IsElunaCompatibilityMode())
     {
         delete elunaEvents;
         elunaEvents = nullptr; // set to null in case map doesn't use eluna
