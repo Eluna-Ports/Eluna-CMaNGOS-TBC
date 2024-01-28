@@ -1936,6 +1936,18 @@ Dummy.Debug2 = 0
 #        Default: 1 (Enabled)
 #                 0 (Disabled)
 #
+#   Eluna.CompatibilityMode
+#       Description: Toggles Eluna between compatibility mode (single-threaded) or multistate mode. 
+#                    Compatibility mode limits the core to a single map update thread.
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
+#   Eluna.OnlyOnMaps
+#       Description: When Eluna is enabled, a state will only be created for a list of specified maps
+#                    This only works for multistate mode.
+#       Default:     ""  - (enabled on all maps)
+#                    "0,1,2,..." - (enabled on specific maps only)
+#
 #   Eluna.TraceBack
 #       Description: Sets whether to use debug.traceback function on a lua error or not.
 #                    Notice that you can redefine the function.
@@ -1950,6 +1962,8 @@ Dummy.Debug2 = 0
 ###################################################################################################################
 
 Eluna.Enabled = 1
+Eluna.CompatibilityMode = false
+Eluna.OnlyOnMaps = ""
 Eluna.TraceBack = false
 Eluna.ScriptPath = "lua_scripts"
 
