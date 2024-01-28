@@ -3373,7 +3373,8 @@ SpellCastResult Spell::cast(bool skipCheck)
     if (m_caster)
     {
         if (m_caster->GetTypeId() == TYPEID_PLAYER)
-            sEluna->OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
+            if (Eluna* e = m_caster->GetEluna())
+                e->OnSpellCast(m_caster->ToPlayer(), this, skipCheck);
     }
 #endif
 
