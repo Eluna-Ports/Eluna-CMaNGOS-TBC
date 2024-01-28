@@ -2044,7 +2044,8 @@ InventoryResult Loot::SendItem(Player* target, LootItem* lootItem, bool sendErro
             target->SendNewItem(newItem, uint32(lootItem->count), false, false, true);
 
 #ifdef BUILD_ELUNA
-            sEluna->OnLootItem(target, newItem, lootItem->count, GetLootGuid());
+            if (Eluna* e = target->GetEluna())
+                e->OnLootItem(target, newItem, lootItem->count, GetLootGuid());
 #endif
 
             if (!m_isChest)
@@ -2246,7 +2247,8 @@ void Loot::SendGold(Player* player)
 
             plr->GetSession()->SendPacket(data);
 #ifdef BUILD_ELUNA
-            sEluna->OnLootMoney(plr, money_per_player);
+            if (Eluna* e = plr->GetEluna())
+                e->OnLootMoney(plr, money_per_player);
 #endif
         }
     }
@@ -2260,7 +2262,8 @@ void Loot::SendGold(Player* player)
                 item->SetLootState(ITEM_LOOT_CHANGED);
         }
 #ifdef BUILD_ELUNA
-        sEluna->OnLootMoney(player, m_gold);
+        if (Eluna* e = player->GetEluna())
+            e->OnLootMoney(player, m_gold);
 #endif
     }
     m_gold = 0;
