@@ -41,6 +41,8 @@
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
 #ifdef BUILD_ELUNA
 #include "LuaEngine/LuaEngine.h"
+#include "LuaEngine/ElunaConfig.h"
+#include "LuaEngine/ElunaLoader.h"
 #endif
 
 #ifdef BUILD_METRICS
@@ -56,16 +58,20 @@
 Map::~Map()
 {
 #ifdef BUILD_ELUNA
-    sEluna->OnDestroy(this);
+    if (Eluna* e = GetEluna())
+        e->OnDestroy(this);
+
+    if (Eluna* e = GetEluna())
+        if (Instanceable())
+            e->FreeInstanceId(GetInstanceId());
+
+    delete eluna;
+    eluna = nullptr;
 #endif
     UnloadAll(true);
 
     if (m_persistentState)
         m_persistentState->SetUsedByMapState(nullptr);         // field pointer can be deleted after this
-#ifdef BUILD_ELUNA
-    if (Instanceable())
-        sEluna->FreeInstanceId(GetInstanceId());
-#endif
 
     delete i_data;
     i_data = nullptr;
@@ -182,7 +188,14 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
 {
     m_weatherSystem = new WeatherSystem(this);
 #ifdef BUILD_ELUNA
-    sEluna->OnCreate(this);
+    // lua state begins uninitialized
+    eluna = nullptr;
+
+    if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaLoader->ShouldMapLoadEluna(id))
+        eluna = new Eluna(this);
+
+    if (Eluna* e = GetEluna())
+        e->OnCreate(this);
 #endif
 }
 
@@ -463,8 +476,11 @@ bool Map::Add(Player* player)
     UpdateObjectVisibility(player, cell, p);
 
 #ifdef BUILD_ELUNA
-    sEluna->OnMapChanged(player);
-    sEluna->OnPlayerEnter(this, player);
+    if(Eluna* e = player->GetEluna())
+        e->OnMapChanged(player);
+
+    if(Eluna* e = GetEluna())
+        e->OnPlayerEnter(this, player);
 #endif
 
 #ifdef BUILD_SOLOCRAFT
@@ -1185,7 +1201,13 @@ void Map::Update(const uint32& t_diff)
         ScriptsProcess();
 
 #ifdef BUILD_ELUNA
-    sEluna->OnUpdate(this, t_diff);
+    if (Eluna* e = GetEluna())
+    {
+        if (!sElunaConfig->IsElunaCompatibilityMode())
+            e->UpdateEluna(t_diff);
+
+        e->OnUpdate(this, t_diff);
+    }
 #endif
 
     if (i_data)
@@ -1197,7 +1219,8 @@ void Map::Update(const uint32& t_diff)
 void Map::Remove(Player* player, bool remove)
 {
 #ifdef BUILD_ELUNA
-    sEluna->OnPlayerLeave(this, player);
+    if (Eluna* e = GetEluna())
+        e->OnPlayerLeave(this, player);
 #endif
     if (i_data)
         i_data->OnPlayerLeave(player);
@@ -1721,10 +1744,13 @@ void Map::AddObjectToRemoveList(WorldObject* obj)
     MANGOS_ASSERT(obj->GetMapId() == GetId() && obj->GetInstanceId() == GetInstanceId());
 
 #ifdef BUILD_ELUNA
-    if (Creature* creature = obj->ToCreature())
-        sEluna->OnRemove(creature);
-    else if (GameObject* gameobject = obj->ToGameObject())
-        sEluna->OnRemove(gameobject);
+    if (Eluna* e = GetEluna())
+    {
+        if (Creature* creature = obj->ToCreature())
+            e->OnRemove(creature);
+        else if (GameObject* gameobject = obj->ToGameObject())
+            e->OnRemove(gameobject);
+    }
 #endif
     obj->CleanupsBeforeDelete();                            // remove or simplify at least cross referenced links
 
@@ -1926,27 +1952,30 @@ void Map::CreateInstanceData(bool load)
         return;
 
 #ifdef BUILD_ELUNA
-    i_data = sEluna->GetInstanceData(this);
-
-    if (!i_data)
+    if (Eluna* e = GetEluna())
     {
-        if (Instanceable())
-        {
-            if (InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(GetId()))
-                i_script_id = mInstance->script_id;
-        }
-        else
-        {
-            if (WorldTemplate const* mInstance = ObjectMgr::GetWorldTemplate(GetId()))
-                i_script_id = mInstance->script_id;
-        }
+        i_data = e->GetInstanceData(this);
 
-        if (!i_script_id)
-            return;
-
-        i_data = sScriptDevAIMgr.CreateInstanceData(this);
         if (!i_data)
-            return;
+        {
+            if (Instanceable())
+            {
+                if (InstanceTemplate const* mInstance = ObjectMgr::GetInstanceTemplate(GetId()))
+                    i_script_id = mInstance->script_id;
+            }
+            else
+            {
+                if (WorldTemplate const* mInstance = ObjectMgr::GetWorldTemplate(GetId()))
+                    i_script_id = mInstance->script_id;
+            }
+
+            if (!i_script_id)
+                return;
+
+            i_data = sScriptDevAIMgr.CreateInstanceData(this);
+            if (!i_data)
+                return;
+        }
     }
 #else
     if (Instanceable())
@@ -3460,6 +3489,16 @@ void Map::SetZoneOverrideLight(uint32 zoneId, uint32 areaId, uint32 lightId, uin
         }
     }
 }
+
+#ifdef BUILD_ELUNA
+Eluna* Map::GetEluna() const
+{
+    if (sElunaConfig->IsElunaCompatibilityMode())
+        return sWorld.GetEluna();
+
+    return eluna;
+}
+#endif
 
 #ifdef BUILD_SOLOCRAFT
 //Set the instance difficulty
