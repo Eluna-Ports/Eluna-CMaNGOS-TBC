@@ -263,7 +263,8 @@ void Item::UpdateDuration(Player* owner, uint32 diff)
     {
 #ifdef BUILD_ELUNA
         // used by eluna
-        sEluna->OnExpire(owner, GetProto());
+        if (Eluna* e = owner->GetEluna())
+            e->OnExpire(owner, GetProto());
 #endif
         owner->DestroyItem(GetBagSlot(), GetSlot(), true);
         return;

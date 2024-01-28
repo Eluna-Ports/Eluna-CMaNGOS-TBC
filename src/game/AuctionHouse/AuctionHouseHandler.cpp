@@ -328,7 +328,8 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recv_data)
     SendAuctionCommandResult(AH, AUCTION_STARTED, AUCTION_OK);
 
 #ifdef BUILD_ELUNA
-    sEluna->OnAdd(auctionHouse, AH);
+    if (Eluna* e = sWorld.GetEluna())
+        e->OnAdd(auctionHouse, AH);
 #endif
 }
 
@@ -472,7 +473,8 @@ void WorldSession::HandleAuctionRemoveItem(WorldPacket& recv_data)
     CharacterDatabase.CommitTransaction();
     sAuctionMgr.RemoveAItem(auction->itemGuidLow);
 #ifdef BUILD_ELUNA
-    sEluna->OnRemove(auctionHouse, auction);
+    if (Eluna* e = sWorld.GetEluna())
+        e->OnRemove(auctionHouse, auction);
 #endif
     auctionHouse->RemoveAuction(auction->Id);
     delete auction;
