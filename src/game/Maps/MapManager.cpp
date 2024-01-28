@@ -30,6 +30,10 @@
 #include "BattleGround/BattleGroundMgr.h"
 #include <future>
 
+#ifdef BUILD_ELUNA
+#include "LuaEngine/ElunaConfig.h"
+#endif
+
 #define CLASS_LOCK MaNGOS::ClassLevelLockable<MapManager, std::recursive_mutex>
 INSTANTIATE_SINGLETON_2(MapManager, CLASS_LOCK);
 INSTANTIATE_CLASS_MUTEX(MapManager, std::recursive_mutex);
@@ -54,6 +58,16 @@ void MapManager::Initialize()
     CreateContinents();
 
     int num_threads(sWorld.getConfig(CONFIG_UINT32_NUM_MAP_THREADS));
+
+#ifdef BUILD_ELUNA
+    if (sElunaConfig->IsElunaEnabled() && sElunaConfig->IsElunaCompatibilityMode() && num_threads > 1)
+    {
+        // Force 1 thread for Eluna if compatibility mode is enabled. Compatibility mode is single state and does not allow more update threads.
+        sLog.outError("Map update threads set to %i, when Eluna in compatibility mode only allows 1, changing to 1", num_threads);
+        num_threads = 1;
+    }
+#endif
+
     if (num_threads > 0)
         m_updater.activate(num_threads);
 }

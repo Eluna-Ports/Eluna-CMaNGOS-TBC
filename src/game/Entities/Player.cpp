@@ -1071,8 +1071,9 @@ uint32 Player::EnvironmentalDamage(EnviromentalDamage type, uint32 damage)
     uint32 final_damage = Unit::DealDamage(this, this, damage, nullptr, damageType, SPELL_SCHOOL_MASK_NORMAL, nullptr, false);
 
 #ifdef BUILD_ELUNA
-    if (!IsAlive())
-        sEluna->OnPlayerKilledByEnvironment(this, type);
+    if(Eluna* e = GetEluna())
+        if (!IsAlive())
+            e->OnPlayerKilledByEnvironment(this, type);
 #endif
 
     if (type == DAMAGE_FALL && !IsAlive())                  // DealDamage not apply item durability loss at self damage
@@ -2773,7 +2774,8 @@ void Player::GiveXP(uint32 xp, Creature* victim, float groupRate)
 
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnGiveXP(this, xp, victim);
+    if (Eluna* e = GetEluna())
+        e->OnGiveXP(this, xp, victim);
 #endif
 
     // XP to money conversion processed in Player::RewardQuest
@@ -2896,17 +2898,19 @@ void Player::GiveLevel(uint32 level)
     GetSession()->SetCurrentPlayerLevel(level);
     SendQuestGiverStatusMultiple();
 #ifdef BUILD_ELUNA
-    sEluna->OnLevelChanged(this, oldLevel);
+    if (Eluna* e = GetEluna())
+        e->OnLevelChanged(this, oldLevel);
 #endif
 }
+
 #ifdef BUILD_ELUNA
 void Player::SetFreeTalentPoints(uint32 points)
-    {
-       sEluna->OnFreeTalentPointsChanged(this, points);
-       SetUInt32Value(PLAYER_CHARACTER_POINTS1, points);
-    }
+{
+    if (Eluna* e = GetEluna())
+        e->OnFreeTalentPointsChanged(this, points);
+    SetUInt32Value(PLAYER_CHARACTER_POINTS1, points);
+}
 #endif
-
 
 void Player::UpdateFreeTalentPoints(bool resetIfNeed)
 {
@@ -3668,7 +3672,8 @@ void Player::learnSpell(uint32 spell_id, bool dependent, bool talent)
         data << uint32(spell_id);
         GetSession()->SendPacket(data);
 #ifdef BUILD_ELUNA
-        sEluna->OnLearnSpell(this, spell_id);
+        if (Eluna* e = GetEluna())
+            e->OnLearnSpell(this, spell_id);
 #endif
     }
 
@@ -3980,7 +3985,8 @@ bool Player::resetTalents(bool no_cost)
 {
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnTalentsReset(this, no_cost);
+    if (Eluna* e = GetEluna())
+        e->OnTalentsReset(this, no_cost);
 #endif
     // not need after this call
     if (HasAtLoginFlag(AT_LOGIN_RESET_TALENTS))
@@ -4601,7 +4607,8 @@ void Player::ResurrectPlayer(float restore_percent, bool applySickness)
             instanceData->OnPlayerResurrect(this);
 
 #ifdef BUILD_ELUNA
-    sEluna->OnResurrect(this);
+    if (Eluna* e = GetEluna())
+        e->OnResurrect(this);
 #endif
 
     if (!applySickness)
@@ -5610,7 +5617,8 @@ bool Player::UpdateSkillPro(uint16 SkillId, int32 Chance, uint16 diff)
             skillStatus.uState = SKILL_CHANGED;
 
 #ifdef BUILD_ELUNA
-        sEluna->OnSkillChange(this, SkillId, new_value);
+        if (Eluna* e = GetEluna())
+            e->OnSkillChange(this, SkillId, new_value);
 #endif
 
         DEBUG_LOG("Player::UpdateSkillPro Chance=%3.1f%% taken", Chance / 10.0);
@@ -7145,8 +7153,9 @@ void Player::UpdateArea(uint32 newArea)
 
 #ifdef BUILD_ELUNA
     // We only want the hook to trigger when the old and new area is actually different
-    if (oldArea != newArea)
-        sEluna->OnUpdateArea(this, oldArea, newArea);
+    if (Eluna* e = GetEluna())
+        if (oldArea != newArea)
+            e->OnUpdateArea(this, oldArea, newArea);
 #endif
 }
 
@@ -7185,7 +7194,8 @@ void Player::UpdateZone(uint32 newZone, uint32 newArea, bool force)
 
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnUpdateZone(this, newZone, newArea);
+    if (Eluna* e = GetEluna())
+        e->OnUpdateZone(this, newZone, newArea);
 #endif
 
     bool updateArea = m_areaUpdateId != newArea || force;
@@ -7328,7 +7338,8 @@ void Player::DuelComplete(DuelCompleteType type)
     }
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnDuelEnd(duel->opponent, this, type);
+    if (Eluna* e = GetEluna())
+        e->OnDuelEnd(duel->opponent, this, type);
 #endif
     // Remove Duel Flag object
     if (GameObject* obj = GetMap()->GetGameObject(GetGuidValue(PLAYER_DUEL_ARBITER)))
@@ -10423,9 +10434,12 @@ InventoryResult Player::CanUseItem(ItemPrototype const* pProto) const
             return EQUIP_ERR_CANT_EQUIP_LEVEL_I;
 
 #ifdef BUILD_ELUNA
-        InventoryResult eres = sEluna->OnCanUseItem(this, pProto->ItemId);
-        if (eres != EQUIP_ERR_OK)
-            return eres;
+        if (Eluna* e = GetEluna())
+        {
+            InventoryResult eres = e->OnCanUseItem(this, pProto->ItemId);
+            if (eres != EQUIP_ERR_OK)
+                return eres;
+        }
 #endif
 
         return EQUIP_ERR_OK;
@@ -10513,7 +10527,8 @@ Item* Player::StoreNewItem(ItemPosCountVec const& dest, uint32 item, bool update
         pItem = StoreItem(dest, pItem, update);
 
 #ifdef BUILD_ELUNA
-        sEluna->OnAdd(this, pItem);
+        if (Eluna* e = GetEluna())
+            e->OnAdd(this, pItem);
 #endif
     }
     return pItem;
@@ -10745,13 +10760,21 @@ Item* Player::EquipItem(uint16 pos, Item* pItem, bool update)
 
 #ifdef BUILD_ELUNA
         // used by eluna
-        sEluna->OnEquip(this, pItem2, bag, slot);
+        if (Eluna* e = GetEluna())
+        {
+            e->OnEquip(this, pItem2, bag, slot); // This is depricated and will be removed in the future
+            e->OnItemEquip(this, pItem2, slot);
+        }
 #endif
         return pItem2;
     }
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnEquip(this, pItem, bag, slot);
+    if (Eluna* e = GetEluna())
+    {
+        e->OnEquip(this, pItem, bag, slot); // This is depricated and will be removed in the future
+        e->OnItemEquip(this, pItem, slot);
+    }
 #endif
     return pItem;
 }
@@ -10772,6 +10795,14 @@ void Player::QuickEquipItem(uint16 pos, Item* pItem)
             pItem->AddToWorld();
             pItem->SendCreateUpdateToPlayer(this);
         }
+
+#ifdef BUILD_ELUNA
+        if (Eluna* e = GetEluna())
+        {
+            e->OnEquip(this, pItem, (pos >> 8), slot); // This is depricated and will be removed in the future
+            e->OnItemEquip(this, pItem, slot);
+        }
+#endif
     }
 }
 
@@ -10884,6 +10915,11 @@ void Player::RemoveItem(uint8 bag, uint8 slot, bool update)
                     }
                     else if (slot == EQUIPMENT_SLOT_OFFHAND)
                         UpdateWeaponDependantStats(OFF_ATTACK);
+
+#ifdef BUILD_ELUNA
+                    if (Eluna* e = GetEluna())
+                        e->OnItemUnEquip(this, pItem, slot);
+#endif
                 }
             }
 
@@ -10984,9 +11020,6 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
             ApplyItemOnStoreSpell(pItem, false);
 
         ItemRemovedQuestCheck(pItem->GetEntry(), pItem->GetCount());
-#ifdef BUILD_ELUNA
-        sEluna->OnRemove(this, pItem);
-#endif
 
         if (bag == INVENTORY_SLOT_BAG_0)
         {
@@ -11019,6 +11052,11 @@ void Player::DestroyItem(uint8 bag, uint8 slot, bool update)
 
                 // equipment visual show
                 SetVisibleItemSlot(slot, nullptr);
+
+#ifdef BUILD_ELUNA
+                if (Eluna* e = GetEluna())
+                    e->OnItemUnEquip(this, pItem, slot);
+#endif
             }
 
             m_items[slot] = nullptr;
@@ -13616,20 +13654,26 @@ void Player::RewardQuest(Quest const* pQuest, uint32 reward, Object* questGiver,
     {
         case TYPEID_UNIT:
 #ifdef BUILD_ELUNA
-            if (sEluna->OnQuestReward(this, (Creature*)questGiver, pQuest, reward))
+            if (Eluna* e = GetEluna())
             {
-                handled = true;
-                break;
+                if (e->OnQuestReward(this, (Creature*)questGiver, pQuest, reward))
+                {
+                    handled = true;
+                    break;
+                }
             }
 #endif
             handled = sScriptDevAIMgr.OnQuestRewarded(this, (Creature*)questGiver, pQuest);
             break;
         case TYPEID_GAMEOBJECT:
 #ifdef BUILD_ELUNA
-            if (sEluna->OnQuestReward(this, (GameObject*)questGiver, pQuest, reward))
+            if (Eluna* e = GetEluna())
             {
-                handled = true;
-                break;
+                if (e->OnQuestReward(this, (GameObject*)questGiver, pQuest, reward))
+                {
+                    handled = true;
+                    break;
+                }
             }
 #endif
             handled = sScriptDevAIMgr.OnQuestRewarded(this, (GameObject*)questGiver, pQuest);
@@ -14322,7 +14366,8 @@ void Player::SetQuestStatus(uint32 quest_id, QuestStatus status)
     UpdateForQuestWorldObjects();
 
 #ifdef BUILD_ELUNA
-    sEluna->OnQuestStatusChanged(this, quest_id, status);
+    if (Eluna* e = GetEluna())
+        e->OnQuestStatusChanged(this, quest_id, status);
 #endif
 }
 
@@ -16669,7 +16714,8 @@ InstancePlayerBind* Player::BindToInstance(DungeonPersistentState* state, bool p
                       GetName(), GetGUIDLow(), state->GetMapId(), state->GetInstanceId(), state->GetDifficulty());
 #ifdef BUILD_ELUNA
         // used by eluna
-        sEluna->OnBindToInstance(this, state->GetDifficulty(), state->GetMapId(), permanent);
+        if (Eluna* e = GetEluna())
+            e->OnBindToInstance(this, state->GetDifficulty(), state->GetMapId(), permanent);
 #endif
         return &bind;
     }
@@ -16899,8 +16945,9 @@ void Player::SaveToDB()
 
 #ifdef BUILD_ELUNA
     // Hack to check that this is not on create save
-    if (!HasAtLoginFlag(AT_LOGIN_FIRST))
-        sEluna->OnSave(this);
+    if (Eluna* e = GetEluna())
+        if (!HasAtLoginFlag(AT_LOGIN_FIRST))
+            e->OnSave(this);
 #endif
 
     static SqlStatementID delChar ;
@@ -17893,7 +17940,8 @@ void Player::UpdateDuelFlag(time_t currTime)
 
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnDuelStart(this, duel->opponent);
+    if (Eluna* e = GetEluna())
+        e->OnDuelStart(this, duel->opponent);
 #endif
 
     SetUInt32Value(PLAYER_DUEL_TEAM, 1);
@@ -21742,7 +21790,8 @@ void Player::LearnTalent(uint32 talentId, uint32 talentRank)
     DETAIL_LOG("TalentID: %u Rank: %u Spell: %u\n", talentId, talentRank, spellid);
 
 #ifdef BUILD_ELUNA
-sEluna->OnLearnTalents(this, talentId, talentRank, spellid);
+    if (Eluna* e = GetEluna())
+        e->OnLearnTalents(this, talentId, talentRank, spellid);
 #endif
 }
 
@@ -21859,7 +21908,8 @@ void Player::_SaveBGData()
 void Player::ModifyMoney(int32 d)
 {
     // used by eluna
-    sEluna->OnMoneyChanged(this, d);
+    if (Eluna* e = GetEluna())
+        e->OnMoneyChanged(this, d);
 
     if (d < 0)
         SetMoney(GetMoney() > uint32(-d) ? GetMoney() + d : 0);

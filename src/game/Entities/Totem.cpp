@@ -111,7 +111,8 @@ void Totem::Summon(Unit* owner)
     if (owner->AI())
         owner->AI()->JustSummoned((Creature*)this);
 #ifdef BUILD_ELUNA
-    sEluna->OnSummoned(this, owner);
+    if (Eluna* e = GetEluna())
+        e->OnSummoned(this, owner);
 #endif
 
     // there are some totems, which exist just for their visual appeareance
