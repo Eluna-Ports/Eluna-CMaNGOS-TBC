@@ -945,7 +945,8 @@ void WorldSession::HandleGuildBankDepositMoney(WorldPacket& recv_data)
 
 #ifdef BUILD_ELUNA
     // used by eluna
-    sEluna->OnMemberDepositMoney(pGuild, GetPlayer(), money);
+    if (Eluna* e = sWorld.GetEluna())
+        e->OnMemberDepositMoney(pGuild, GetPlayer(), money);
 #endif
     pGuild->DisplayGuildBankTabsInfo(this);
     pGuild->DisplayGuildBankContent(this, 0);
