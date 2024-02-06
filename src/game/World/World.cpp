@@ -877,8 +877,11 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_SUNSREACH_COUNTER, "Sunsreach.CounterMax", 10000);
 #ifdef BUILD_ELUNA
-    if (Eluna* e = GetEluna())
-        e->OnConfigLoad(reload);
+    if (reload)
+    {
+        if (Eluna* e = GetEluna())
+            e->OnConfigLoad(reload);
+    }
 #endif
 
 #ifdef BUILD_SOLOCRAFT
@@ -1500,6 +1503,20 @@ void World::SetInitialWorldSettings()
     sLog.outString("Loading GM tickets...");
     sTicketMgr.LoadGMTickets();
 
+#ifdef BUILD_ELUNA
+    // lua state begins uninitialized
+    eluna = nullptr;
+
+    if (sElunaConfig->IsElunaEnabled())
+    {
+        ///- Run eluna scripts.
+        sLog.outString("Starting Eluna world state...");
+        // use map id -1 for the global Eluna state
+        eluna = new Eluna(nullptr, sElunaConfig->IsElunaCompatibilityMode());
+        sLog.outString();
+    }
+#endif
+
     ///- Load and initialize EventAI Scripts
     sLog.outString("Loading CreatureEventAI Summons...");
     sEventAIMgr.LoadCreatureEventAI_Summons(false);         // false, will checked in LoadCreatureEventAI_Scripts
@@ -1634,19 +1651,9 @@ void World::SetInitialWorldSettings()
 #endif
 
 #ifdef BUILD_ELUNA
-    // lua state begins uninitialized
-    eluna = nullptr;
-
-    if (sElunaConfig->IsElunaEnabled())
-    {
-        ///- Run eluna scripts.
-        sLog.outString("Starting Eluna world state...");
-        // use map id -1 for the global Eluna state
-        eluna = new Eluna(nullptr, sElunaConfig->IsElunaCompatibilityMode());
-
-        eluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
-        sLog.outString();
-    }
+    if (GetEluna())
+        GetEluna()->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
+    sLog.outString();
 #endif
 
     sLog.outString("---------------------------------------");
