@@ -1762,8 +1762,8 @@ void World::Update(uint32 diff)
 
     if (m_currentDiffSumIndex && m_currentDiffSumIndex % 60 == 0)
     {
-        sLog.outBasic("Avg Diff: %u. Sessions online: %u.", m_averageDiff, (uint32)GetActiveSessionCount());
-        sLog.outBasic("Max Diff: %u.", m_maxDiff);
+        sLog.outDebug("Avg Diff: %u. Sessions online: %u.", m_averageDiff, (uint32)GetActiveSessionCount());
+        sLog.outDebug("Max Diff: %u.", m_maxDiff);
     }
 
     if (m_currentDiffSum % 3000 == 0)
