@@ -1937,7 +1937,7 @@ Dummy.Debug2 = 0
 ###################################################################################################################
 
 Eluna.Enabled = 1
-Eluna.CompatibilityMode = true
+Eluna.CompatibilityMode = false
 Eluna.OnlyOnMaps = ""
 Eluna.TraceBack = false
 Eluna.ScriptPath = "lua_scripts"
