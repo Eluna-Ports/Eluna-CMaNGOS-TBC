@@ -1161,6 +1161,9 @@ void World::SetInitialWorldSettings()
     sLog.outString();
 
 #ifdef BUILD_ELUNA
+    // lua state begins uninitialized
+    eluna = nullptr;
+    
     sLog.outString("Loading Eluna config...");
     sElunaConfig->Initialize();
 
@@ -1529,9 +1532,6 @@ void World::SetInitialWorldSettings()
     sTicketMgr.LoadGMTickets();
 
 #ifdef BUILD_ELUNA
-    // lua state begins uninitialized
-    eluna = nullptr;
-
     if (sElunaConfig->IsElunaEnabled())
     {
         ///- Run eluna scripts.
@@ -1679,8 +1679,8 @@ void World::SetInitialWorldSettings()
 #endif
 
 #ifdef BUILD_ELUNA
-    if (GetEluna())
-        GetEluna()->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
+    if (Eluna* e = GetEluna())
+        e->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run
     sLog.outString();
 #endif
 
