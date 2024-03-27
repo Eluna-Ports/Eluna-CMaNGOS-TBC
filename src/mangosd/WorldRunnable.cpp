@@ -70,7 +70,8 @@ struct TimeBeginRAII
 void WorldRunnable::run()
 {
 #ifdef BUILD_ELUNA
-    sWorld.GetEluna()->OnStartup();
+    if(Eluna* e = sWorld.GetEluna())
+        e->OnStartup();
 #endif
     
 	TimeBeginRAII raii;
@@ -115,7 +116,8 @@ void WorldRunnable::run()
 #endif
     }
 #ifdef BUILD_ELUNA
-    sWorld.GetEluna()->OnShutdown();
+    if(Eluna* e = sWorld.GetEluna())
+        e->OnShutdown();
 #endif
 
     sWorld.CleanupsBeforeStop();
