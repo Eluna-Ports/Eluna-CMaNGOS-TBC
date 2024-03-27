@@ -42,7 +42,8 @@ extern int m_ServiceStatus;
 void WorldRunnable::run()
 {
 #ifdef BUILD_ELUNA
-    sWorld.GetEluna()->OnStartup();
+    if(Eluna* e = sWorld.GetEluna())
+        e->OnStartup();
 #endif
 
     ///- Init new SQL thread for the world database
@@ -85,7 +86,8 @@ void WorldRunnable::run()
 #endif
     }
 #ifdef BUILD_ELUNA
-    sWorld.GetEluna()->OnShutdown();
+    if(Eluna* e = sWorld.GetEluna())
+        e->OnShutdown();
 #endif
 
     sWorld.CleanupsBeforeStop();

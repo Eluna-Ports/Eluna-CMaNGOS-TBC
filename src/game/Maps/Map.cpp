@@ -478,11 +478,11 @@ bool Map::Add(Player* player)
     UpdateObjectVisibility(player, cell, p);
 
 #ifdef BUILD_ELUNA
-    if(Eluna* e = player->GetEluna())
+    if (Eluna* e = GetEluna())
+    {
         e->OnMapChanged(player);
-
-    if(Eluna* e = GetEluna())
         e->OnPlayerEnter(this, player);
+    }
 #endif
 
 #ifdef BUILD_SOLOCRAFT
