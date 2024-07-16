@@ -160,14 +160,8 @@ if (BUILD_ELUNA)
   include_directories(
   ${CMAKE_SOURCE_DIR}/src/game/LuaEngine/hooks
   )
-  add_definitions(-DBUILD_ELUNA -DTBC -DCMANGOS)
   install(FILES ${CMAKE_SOURCE_DIR}/contrib/lua_scripts/masterscript.lua DESTINATION ${BIN_DIR}/lua_scripts)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/game/LuaEngine/extensions DESTINATION ${BIN_DIR}/lua_scripts)
-endif()
-
-# Define BUILD_SOLOCRAFT if needed
-if (BUILD_SOLOCRAFT)
-add_definitions(-DBUILD_SOLOCRAFT)
 endif()
 
 if(MSVC)
