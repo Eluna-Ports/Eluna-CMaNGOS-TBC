@@ -79,11 +79,6 @@ foreach (TMP_PATH ${LIBRARY_SRCS})
         list(REMOVE_ITEM LIBRARY_SRCS ${TMP_PATH})
     endif ()
 endforeach()
-add_definitions(-DBUILD_ELUNA -DCMANGOS -DTBC)
-endif()
-
-if(BUILD_SOLOCRAFT)
-add_definitions(-DBUILD_SOLOCRAFT)
 endif()
 
 if(NOT BUILD_DEPRECATED_PLAYERBOT)
