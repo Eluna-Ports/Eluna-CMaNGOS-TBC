@@ -61,6 +61,12 @@ else()
   message(STATUS "Build SoloCraft Mod   : No  (default)")
 endif()
 
+if(BUILD_DUAL_SPEC)
+  message(STATUS "Build Dual Spec mod   : Yes")
+else()
+  message(STATUS "Build Dual Spec mod   : No  (default)")
+endif()
+
 if(BUILD_AHBOT)
   message(STATUS "Build AHBot           : Yes")
 else()

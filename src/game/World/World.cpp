@@ -1038,6 +1038,10 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_BOOL_REGEN_ZONE_AREA_ON_STARTUP, "Spawns.ZoneArea", false);
 
+#ifdef BUILD_DUAL_SPEC
+    setConfig(CONFIG_UINT32_DUAL_SPEC_TIME_DELTA, "DualSpecTimeDelta", 300);
+#endif
+
     sLog.outString();
 }
 

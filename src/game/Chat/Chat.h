@@ -690,6 +690,9 @@ class ChatHandler
         bool HandleGroupgoCommand(char* args);
         bool HandleRecallCommand(char* args);
         bool HandleAnnounceCommand(char* args);
+#ifdef BUILD_DUAL_SPEC
+        bool HandleSwapSpec(char* args);
+#endif
         bool HandleNotifyCommand(char* args);
         bool HandleGPSCommand(char* args);
         bool HandleTaxiCheatCommand(char* args);

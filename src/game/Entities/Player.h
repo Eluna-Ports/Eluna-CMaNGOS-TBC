@@ -2209,6 +2209,21 @@ class Player : public Unit
         AreaLockStatus GetAreaTriggerLockStatus(AreaTrigger const* at, uint32& miscRequirement, bool forceAllChecks = false);
         void SendTransferAbortedByLockStatus(MapEntry const* mapEntry, AreaTrigger const* at, AreaLockStatus lockStatus, uint32 miscRequirement = 0) const;
 
+#ifdef BUILD_DUAL_SPEC
+        /*********************************************************/
+        /***                DUEL SPEC SYSTEM                   ***/
+        /*********************************************************/
+
+        void LoadAlternativeSpec();
+        void SaveAlternativeSpec();
+        typedef std::list<uint32> SpellIDList;
+        SpellIDList m_altspec_talents;
+        SpellIDList m_loaded_talents;
+        ActionButtonList m_altspec_actionButtons;
+        time_t m_altspec_lastswap;
+        uint32 SwapSpec();
+#endif
+
         /*********************************************************/
         /***                   GROUP SYSTEM                    ***/
         /*********************************************************/

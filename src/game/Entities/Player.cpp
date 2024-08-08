@@ -22673,3 +22673,181 @@ void Player::SetPet(Unit* pet)
     Unit::SetPet(pet);
     ApplyModByteFlag(PLAYER_FIELD_BYTES, PLAYER_FIELD_BYTES_OFFSET_FLAGS, PLAYER_FIELD_BYTE_CONTROLLING_PET, pet != nullptr);
 }
+
+#ifdef BUILD_DUAL_SPEC
+void Player::SaveAlternativeSpec()
+{
+    sLog.outDebug("Saving spec");
+    //Save current spec
+    for (SpellIDList::iterator it = m_altspec_talents.begin(); it != m_altspec_talents.end(); it++)
+    {
+        CharacterDatabase.PExecute("INSERT INTO `character_altspec` (`guid`, `altspells`) VALUES (%u, %u)", GetGUIDLow(), *it);
+    }
+    sLog.outDebug("Spec saved");
+
+    //Remove previous spec action buttons
+    CharacterDatabase.PExecute("DELETE FROM character_altspec_action WHERE guid = '%u'", GetGUIDLow());
+    sLog.outDebug("Old buttons removed");
+
+    //Now - seek all needed keys and insert into DB
+    for (uint32 button = 0; button < MAX_ACTION_BUTTONS; ++button)
+    {
+        //Find button by button id
+        ActionButtonList::const_iterator itr = m_altspec_actionButtons.find(button);
+        //STL returns end() if not found. We need to skip it.
+        if (itr != m_altspec_actionButtons.end())
+        {
+            //Okay, now we're ready to insert it
+            CharacterDatabase.PExecute("INSERT INTO character_altspec_action (guid,button,action,type) VALUES ('%u', '%u', '%u', '%u')",
+                GetGUIDLow(), button, itr->second.GetAction(), itr->second.GetType());
+        }
+    }
+}
+
+void Player::LoadAlternativeSpec()
+{
+    //Load talents from database
+    auto queryResult = CharacterDatabase.PQuery("SELECT `altspells` FROM character_altspec WHERE guid = %u", GetGUIDLow());
+
+    if (queryResult)
+    {
+        Field* fields = queryResult->Fetch();
+        do
+        {
+            m_loaded_talents.push_back(fields[0].GetUInt32());
+        } while (queryResult->NextRow());
+    }
+
+    //Delete loaded spec, will be replaced with current spec
+    CharacterDatabase.PExecute("DELETE FROM `character_altspec` WHERE guid = %u", GetGUIDLow());
+
+    sLog.outDebug("Loaded spec");
+}
+
+uint32 Player::SwapSpec()
+{
+    /*
+        Error codes:
+        2 - Too low level
+        3 - Too fast
+        Strategy:
+        1) save keys
+        2) save talents
+        3) load talents
+        4) load keys
+    */
+
+    //Level check
+    if (GetLevel() <= 10)
+        return 2;
+
+    //Time check
+    if (uint32(time(NULL) - m_altspec_lastswap) < sWorld.getConfig(CONFIG_UINT32_DUAL_SPEC_TIME_DELTA))
+        return 3;
+
+    /*********************************************************/
+    /***                SAVE ACTIONBUTTONS                 ***/
+    /*********************************************************/
+    sLog.outDebug("Save action buttons");
+    //Save buttons before
+    ActionButtonList tmp_buttons = m_altspec_actionButtons;
+
+    //Just copy current content
+    m_altspec_actionButtons = m_actionButtons;
+
+    /*********************************************************/
+    /***                   SAVE TALENTS                    ***/
+    /*********************************************************/
+    sLog.outDebug("Save talents");
+    //erase it for populating using current talents
+    m_altspec_talents.clear();
+    m_loaded_talents.clear();
+
+    //Find all talents, general idea from Player::resetTalents
+    for (unsigned int i = 0; i < sTalentStore.GetNumRows(); ++i) {
+        TalentEntry const* talentInfo = sTalentStore.LookupEntry(i);
+        if (!talentInfo) continue;
+        TalentTabEntry const* talentTabInfo = sTalentTabStore.LookupEntry(talentInfo->TalentTab);
+        if (!talentTabInfo) continue;
+        if ((getClassMask() & talentTabInfo->ClassMask) == 0) continue;
+        for (int j = 0; j < 5; ++j) {
+            for (PlayerSpellMap::iterator itr = GetSpellMap().begin(); itr != GetSpellMap().end();) {
+
+                //skip disabled talents like Pyroblast or some else
+                if (itr->second.state == PLAYERSPELL_REMOVED || itr->second.disabled)
+                {
+                    ++itr;
+                    continue;
+                }
+
+                //for spells, which can be updated via trainers(like Pyroblast), we can'n just compare, cuz
+                // >1 ranks are not in talens store. So, first rank it is. We can just get lowerest rank of skill
+                // and search it in the talents storage.
+                uint32 itrFirstId = sSpellMgr.GetFirstSpellInChain(itr->first);
+
+                //now - just compare. Also, it make sense to add "|| spellmgr.IsSpellLearnToSpell(talentInfo->RankID[j],itrFirstId)"
+                //but i have no idea what it is, it uses in the Player::resetTalents function and it may be needed.
+                //Also, there is a some spells like Prayer of Spirit, which not in talents tree, but its depends on talents.
+                //So, we need just to get required spell by current spell and find is it in player spellbook.
+                if (itrFirstId == talentInfo->RankID[j]
+                    || sSpellMgr.IsSpellLearnToSpell(talentInfo->RankID[j], itrFirstId)
+                    )//|| HasSpell(spellmgr.GetSpellRequired(itrFirstId)))
+                    m_altspec_talents.push_back(itr->first);
+                ++itr;
+            }
+        }
+    }
+    //Must call load first since old spec will be deleted
+    LoadAlternativeSpec();
+    auto queryResultButtons = CharacterDatabase.PQuery("SELECT `button`, `action`, `type` FROM character_altspec_action WHERE guid = %u", GetGUIDLow());
+    SaveAlternativeSpec();
+
+    /*********************************************************/
+    /***                   LOAD TALENTS                    ***/
+    /*********************************************************/
+    sLog.outDebug("Load talents");
+    resetTalents(true);
+    for (SpellIDList::iterator it = m_loaded_talents.begin(); it != m_loaded_talents.end(); it++)
+    {
+        learnSpell(*it, false);
+    }
+    InitTalentForLevel();
+    //learnSkillRewardedSpells();
+
+    /*********************************************************/
+    /***               LOAD ACTIONBUTTONS                  ***/
+    /*********************************************************/
+    sLog.outDebug("Load action buttons");
+    //Clean up
+    for (int button = 0; button < MAX_ACTION_BUTTONS; ++button)
+        removeActionButton(button);
+    sLog.outDebug("Action buttons cleaned");
+
+    //Add new actions buttons for new spec
+    if (queryResultButtons)
+    {
+        Field* fields = queryResultButtons->Fetch();
+
+        do
+        {
+            uint8 button = fields[0].GetUInt8();
+            uint32 action = fields[1].GetUInt32();
+            uint8 type = fields[2].GetUInt8();
+
+            addActionButton(button, action, type);
+        } while (queryResultButtons->NextRow());
+    }
+
+    sLog.outDebug("Action buttons added");
+
+    //SendInitialActionButtons();//doesnt work
+
+    //Drop mana and health to minimum for preventing of profit from swappings
+    SetHealth(1);
+    SetPower(POWER_MANA, 1);
+    SetPower(POWER_RAGE, 1);
+    SetPower(POWER_ENERGY, 1);
+    GetSession()->LogoutPlayer(); //Action bars won't reload unless player is kicked then relogs
+    return 1; //Okay
+}
+#endif

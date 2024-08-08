@@ -994,6 +994,9 @@ ChatCommand* ChatHandler::getCommandTable()
         { "aura",           SEC_ADMINISTRATOR,  false, &ChatHandler::HandleAuraCommand,                "", nullptr },
         { "unaura",         SEC_ADMINISTRATOR,  false, &ChatHandler::HandleUnAuraCommand,              "", nullptr },
         { "announce",       SEC_MODERATOR,      true,  &ChatHandler::HandleAnnounceCommand,            "", nullptr },
+#ifdef BUILD_DUAL_SPEC
+        { "swapspec",       SEC_PLAYER,         false, &ChatHandler::HandleSwapSpec,                   "", nullptr },
+#endif
         { "notify",         SEC_MODERATOR,      true,  &ChatHandler::HandleNotifyCommand,              "", nullptr },
         { "goname",         SEC_MODERATOR,      false, &ChatHandler::HandleGonameCommand,              "", nullptr },
         { "appear",         SEC_MODERATOR,      false, &ChatHandler::HandleGonameCommand,              "", nullptr },
