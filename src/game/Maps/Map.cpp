@@ -195,9 +195,6 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
 
     if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaConfig->ShouldMapLoadEluna(id))
         eluna = new Eluna(this);
-
-    if (Eluna* e = GetEluna())
-        e->OnCreate(this);
 #endif
 }
 
