@@ -31,6 +31,7 @@
 #include <future>
 
 #ifdef BUILD_ELUNA
+#include "LuaEngine/LuaEngine.h"
 #include "LuaEngine/ElunaConfig.h"
 #endif
 
@@ -158,6 +159,11 @@ Map* MapManager::CreateMap(uint32 id, const WorldObject* obj)
             m->Initialize();
         }
     }
+
+#ifdef BUILD_ELUNA
+    if (Eluna* e = m->GetEluna())
+        e->OnCreate(m);
+#endif
 
     return m;
 }
