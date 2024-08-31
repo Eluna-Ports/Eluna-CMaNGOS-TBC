@@ -28,6 +28,7 @@
 #include "Entities/Player.h"
 #include "Server/SQLStorages.h"
 #include "Spells/SpellEffectDefines.h"
+#include "Util/UniqueTrackablePtr.h"
 
 class WorldSession;
 class WorldPacket;
@@ -341,6 +342,23 @@ class SpellCastArgs
         int32* m_basePoints[3];
         bool m_destinationSet;
         Position m_destination;
+};
+
+class SpellEvent : public BasicEvent
+{
+public:
+    SpellEvent(Spell* spell);
+    virtual ~SpellEvent();
+
+    virtual bool Execute(uint64 e_time, uint32 p_time) override;
+    virtual void Abort(uint64 e_time) override;
+    virtual bool IsDeletable() const override;
+
+    Spell* GetSpell() const { return m_Spell.get(); }
+    MaNGOS::unique_weak_ptr<Spell> GetSpellWeakPtr() const { return m_Spell; }
+
+protected:
+    MaNGOS::unique_trackable_ptr<Spell> m_Spell;
 };
 
 class Spell
@@ -812,6 +830,8 @@ class Spell
         void SetIgnoreRoot(bool state) { m_ignoreRoot = state; }
         void SetDamageDoneModifier(float mod, SpellEffectIndex effIdx);
         void SetUsableWhileStunned(bool state) { m_usableWhileStunned = state; }
+
+        MaNGOS::unique_weak_ptr<Spell> GetWeakPtr() const;
     protected:
         void SendLoot(ObjectGuid guid, LootType loottype, LockType lockType);
         bool IgnoreItemRequirements() const;                // some item use spells have unexpected reagent data
@@ -983,6 +1003,8 @@ class Spell
         // we can't store original aura link to prevent access to deleted auras
         // and in same time need aura data and after aura deleting.
         SpellEntry const* m_triggeredByAuraSpell;
+
+        SpellEvent* m_spellEvent;
 
         // needed to store all log for this spell
         SpellLog m_spellLog;
@@ -1213,18 +1235,4 @@ namespace MaNGOS
 
 typedef void(Spell::*pEffect)(SpellEffectIndex eff_idx);
 
-class SpellEvent : public BasicEvent
-{
-    public:
-        SpellEvent(Spell* spell);
-        virtual ~SpellEvent();
-
-        virtual bool Execute(uint64 e_time, uint32 p_time) override;
-        virtual void Abort(uint64 e_time) override;
-        virtual bool IsDeletable() const override;
-
-        Spell* GetSpell() const { return m_Spell; }
-    protected:
-        Spell* m_Spell;
-};
 #endif
