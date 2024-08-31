@@ -39,6 +39,7 @@
 #include "Chat/Chat.h"
 #include "Weather/Weather.h"
 #include "AI/ScriptDevAI/ScriptDevAIMgr.h"
+#include "BattleGround/BattleGroundMgr.h"
 #ifdef BUILD_ELUNA
 #include "LuaEngine/LuaEngine.h"
 #include "LuaEngine/ElunaConfig.h"
@@ -2398,7 +2399,10 @@ void BattleGroundMap::Update(const uint32& diff)
         // ]]
         // BattleGround Template instance cannot be updated, because it would be deleted
         if (!m_bg->GetInvitedCount(HORDE) && !m_bg->GetInvitedCount(ALLIANCE))
-            delete m_bg;
+        {
+            sBattleGroundMgr.RemoveBattleGround(GetInstanceId(), m_bg->GetTypeId());
+            m_bg = nullptr;
+        }
     }
     else
         m_bg->Update(diff);

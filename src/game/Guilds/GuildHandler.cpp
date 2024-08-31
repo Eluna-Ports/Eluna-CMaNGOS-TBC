@@ -202,7 +202,6 @@ void WorldSession::HandleGuildRemoveOpcode(WorldPacket& recvPacket)
     if (guild->DelMember(slot->guid))
     {
         guild->Disband();
-        delete guild;
         return;
     }
 
@@ -420,7 +419,6 @@ void WorldSession::HandleGuildLeaveOpcode(WorldPacket& /*recvPacket*/)
     if (_player->GetObjectGuid() == guild->GetLeaderGuid())
     {
         guild->Disband();
-        delete guild;
         return;
     }
 
@@ -429,7 +427,6 @@ void WorldSession::HandleGuildLeaveOpcode(WorldPacket& /*recvPacket*/)
     if (guild->DelMember(_player->GetObjectGuid()))
     {
         guild->Disband();
-        delete guild;
         return;
     }
 
@@ -457,7 +454,6 @@ void WorldSession::HandleGuildDisbandOpcode(WorldPacket& /*recvPacket*/)
     }
 
     guild->Disband();
-    delete guild;
 
     DEBUG_LOG("WORLD: Guild Successfully Disbanded");
 }
