@@ -7347,11 +7347,7 @@ void Player::DuelComplete(DuelCompleteType type)
         data << GetName();
         SendMessageToSet(data, true);
     }
-#ifdef BUILD_ELUNA
-    // used by eluna
-    if (Eluna* e = GetEluna())
-        e->OnDuelEnd(duel->opponent, this, type);
-#endif
+
     // Remove Duel Flag object
     if (GameObject* obj = GetMap()->GetGameObject(GetGuidValue(PLAYER_DUEL_ARBITER)))
         duel->initiator->RemoveGameObject(obj, true);
@@ -7397,10 +7393,20 @@ void Player::DuelComplete(DuelCompleteType type)
     duel->opponent->SetGuidValue(PLAYER_DUEL_ARBITER, ObjectGuid());
     duel->opponent->SetUInt32Value(PLAYER_DUEL_TEAM, 0);
 
+#ifdef BUILD_ELUNA
+    Player* duelOpponent = duel->opponent;
+#endif
+
     delete duel->opponent->duel;
     duel->opponent->duel = nullptr;
     delete duel;
     duel = nullptr;
+
+#ifdef BUILD_ELUNA
+    // used by eluna
+    if (Eluna* e = GetEluna())
+        e->OnDuelEnd(duelOpponent, this, type);
+#endif
 }
 
 //---------------------------------------------------------//
