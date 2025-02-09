@@ -2101,6 +2101,12 @@ void WorldObject::AddToWorld()
             m_currMap->AddStringIdObject(stringId, this);
 
     Object::AddToWorld();
+
+#ifdef BUILD_ELUNA
+    if (Eluna* e = GetEluna())
+        if (!elunaEvents)
+            elunaEvents = new ElunaEventProcessor(e, this);
+#endif
 }
 
 void WorldObject::RemoveFromWorld()
