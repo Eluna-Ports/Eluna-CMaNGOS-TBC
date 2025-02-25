@@ -793,8 +793,8 @@ class World
         void StartBGQueueThread();
 
 #ifdef BUILD_ELUNA
-        Eluna* GetEluna() const { return eluna; }
-        Eluna* eluna;
+        Eluna* GetEluna() const { return eluna.get(); }
+        std::unique_ptr<Eluna> eluna;
 #endif
     protected:
         void _UpdateGameTime();

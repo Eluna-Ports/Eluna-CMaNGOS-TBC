@@ -87,11 +87,6 @@ Map::~Map()
 
     for (auto m_Transport : m_transports)
         delete m_Transport;
- 
-#ifdef BUILD_ELUNA
-    delete eluna;
-    eluna = nullptr;
-#endif
 }
 
 uint32 Map::GetCurrentMSTime() const
@@ -196,7 +191,7 @@ Map::Map(uint32 id, time_t expiry, uint32 InstanceId, uint8 SpawnMode)
     eluna = nullptr;
 
     if (sElunaConfig->IsElunaEnabled() && !sElunaConfig->IsElunaCompatibilityMode() && sElunaConfig->ShouldMapLoadEluna(id))
-        eluna = new Eluna(this);
+        eluna = std::make_unique<Eluna>(this);
 #endif
 }
 
@@ -3517,7 +3512,7 @@ Eluna* Map::GetEluna() const
     if (sElunaConfig->IsElunaCompatibilityMode())
         return sWorld.GetEluna();
 
-    return eluna;
+    return eluna.get();
 }
 #endif
 
