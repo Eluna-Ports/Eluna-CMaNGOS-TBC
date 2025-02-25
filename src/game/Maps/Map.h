@@ -609,7 +609,7 @@ class Map : public GridRefManager<NGridType>
         uint32 m_defaultLight;
 
 #ifdef BUILD_ELUNA
-        Eluna* eluna;
+        std::unique_ptr<Eluna> eluna;
 #endif
 };
 

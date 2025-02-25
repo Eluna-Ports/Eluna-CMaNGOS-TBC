@@ -153,12 +153,6 @@ World::~World()
 {
     // it is assumed that no other thread is accessing this data when the destructor is called.  therefore, no locks are necessary
 
-    #ifdef BUILD_ELUNA
-    // Delete world Eluna state
-        delete eluna;
-        eluna = nullptr;
-    #endif
-
     ///- Empty the kicked session set
     for (auto const session : m_sessions)
         delete session.second;
@@ -1549,7 +1543,7 @@ void World::SetInitialWorldSettings()
         ///- Run eluna scripts.
         sLog.outString("Starting Eluna world state...");
         // use map id -1 for the global Eluna state
-        eluna = new Eluna(nullptr, sElunaConfig->IsElunaCompatibilityMode());
+        eluna = std::make_unique<Eluna>(nullptr, sElunaConfig->IsElunaCompatibilityMode());
         sLog.outString();
     }
 #endif
