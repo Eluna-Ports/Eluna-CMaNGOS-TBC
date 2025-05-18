@@ -1242,9 +1242,12 @@ class WorldObject : public Object
         // Spell mod owner: static player whose spell mods apply to this unit (server-side)
         virtual Player* GetSpellModOwner() const { return nullptr; }
 #ifdef BUILD_ELUNA
-        std::unique_ptr<ElunaEventProcessor> elunaEvents;
+        std::unique_ptr <ElunaEventProcessor> elunaMapEvents;
+        std::unique_ptr <ElunaEventProcessor> elunaWorldEvents;
 
         Eluna* GetEluna() const;
+
+        std::unique_ptr<ElunaEventProcessor>& GetElunaEvents(int32 mapId) { return (mapId == -1) ? elunaWorldEvents : elunaMapEvents; }
 
         LuaVal lua_data = LuaVal({});
 #endif
