@@ -8609,7 +8609,7 @@ void Unit::SetInCombatState(bool PvP, Unit* enemy)
                         enemy->GetCombatManager().TriggerCombatTimer(controller);
                 }
 #ifdef BUILD_ELUNA
-                else if (elunaEvents && controller->IsPlayer())
+                else if ((elunaMapEvents || elunaWorldEvents) && controller->IsPlayer())
                 {
                     controller->SetInCombatWith(enemy); // player needs to enter combat with summoned Eluna pet
                     enemy->AddThreat(controller);
