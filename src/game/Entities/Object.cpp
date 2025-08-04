@@ -1287,13 +1287,6 @@ void WorldObject::CleanupsBeforeDelete()
 
 void WorldObject::Update(const uint32 diff)
 {
-#ifdef BUILD_ELUNA
-    if (elunaMapEvents)
-        elunaMapEvents->Update(diff);
-
-    if (elunaWorldEvents)
-        elunaWorldEvents->Update(diff);
-#endif
     m_heartBeatTimer.Update(diff);
     while (m_heartBeatTimer.Passed())
     {
