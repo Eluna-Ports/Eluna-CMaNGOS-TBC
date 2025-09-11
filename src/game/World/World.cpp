@@ -1161,9 +1161,6 @@ void World::SetInitialWorldSettings()
     sLog.outString();
 
 #ifdef BUILD_ELUNA
-    // lua state begins uninitialized
-    eluna = nullptr;
-    
     sLog.outString("Loading Eluna config...");
     sElunaConfig->Initialize();
 
@@ -1543,7 +1540,8 @@ void World::SetInitialWorldSettings()
         ///- Run eluna scripts.
         sLog.outString("Starting Eluna world state...");
         // use map id -1 for the global Eluna state
-        eluna = std::make_unique<Eluna>(nullptr);
+        m_elunaInfo = {ElunaInfoKey::MakeGlobalKey(0)};
+        sElunaMgr->Create(nullptr, m_elunaInfo);
         sLog.outString();
     }
 #endif

@@ -42,6 +42,7 @@
 #include "World/WorldStateVariableManager.h"
 #ifdef BUILD_ELUNA
 #include "LuaEngine/LuaValue.h"
+#include "LuaEngine/ElunaMgr.h"
 #endif
 
 #include <bitset>
@@ -441,8 +442,7 @@ class Map : public GridRefManager<NGridType>
 #endif
 
 #ifdef BUILD_ELUNA
-        Eluna* GetEluna() const { return eluna.get(); }
-
+        Eluna* GetEluna() const {return sElunaMgr -> Get(m_elunaInfo); }
         LuaVal lua_data = LuaVal({});
 #endif
 
@@ -609,7 +609,7 @@ class Map : public GridRefManager<NGridType>
         uint32 m_defaultLight;
 
 #ifdef BUILD_ELUNA
-        std::unique_ptr<Eluna> eluna;
+        ElunaInfo m_elunaInfo;
 #endif
 };
 
