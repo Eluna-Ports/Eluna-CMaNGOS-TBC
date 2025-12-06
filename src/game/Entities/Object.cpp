@@ -2088,21 +2088,9 @@ void WorldObject::AddToWorld()
     Object::AddToWorld();
 
 #ifdef BUILD_ELUNA
-    // always reset Map events, then recreate the Map events procesor if Eluna is enabled for the map
-    auto& events = GetElunaEvents(m_mapId);
-    if (events)
-        events.reset();
-
-    if (Eluna* e = m_currMap->GetEluna())
-        events = std::make_unique<ElunaEventProcessor>(e, this);
-
-    // create the World events processor
-    if (Eluna* e = sWorld.GetEluna())
-    {
-        auto& events = GetElunaEvents(-1);
-        if (!events)
-            events = std::make_unique<ElunaEventProcessor>(e, this);
-    }
+    // Reset MAP processor
+    if (elunaMapEvents)
+        elunaMapEvents.reset();
 #endif
 }
 
@@ -3334,5 +3322,28 @@ Eluna* WorldObject::GetEluna() const
         return GetMap()->GetEluna();
 
     return nullptr;
+}
+
+ElunaEventProcessor* WorldObject::GetElunaEvents(int32 mapId)
+{
+    Eluna* eluna = mapId == -1 ? sWorld.GetEluna() : GetEluna();
+    if (!eluna)
+        return nullptr;
+
+    EventMgr* mgr = eluna->eventMgr.get();
+    if (!mgr)
+        return nullptr;
+
+    // Select the correct ProcessorInfo slot
+    std::unique_ptr<ElunaProcessorInfo>& info = (mapId == -1) ? elunaWorldEvents : elunaMapEvents;
+
+    // Lazily create processor + ProcessorInfo handle
+    if (!info)
+    {
+        uint64 id = mgr->CreateObjectProcessor(this);
+        info = std::make_unique<ElunaProcessorInfo>(mgr, id);
+    }
+
+    return mgr->GetObjectProcessor(info->GetProcessorId());
 }
 #endif
