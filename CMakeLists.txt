@@ -445,6 +445,13 @@ if(BUILD_ELUNA)
   endif()
 endif()
 
+if(BUILD_SOLOCRAFT)
+  set_property(TARGET game mangosd APPEND PROPERTY COMPILE_DEFINITIONS BUILD_SOLOCRAFT)
+  if(BUILD_PLAYERBOTS)
+    set_property(TARGET playerbots APPEND PROPERTY COMPILE_DEFINITIONS BUILD_SOLOCRAFT)
+  endif()
+endif()
+
 # if(SQL)
 #   add_subdirectory(sql)
 # endif()
