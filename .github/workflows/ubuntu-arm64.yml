@@ -1,0 +1,87 @@
+name: Ubuntu Arm64 build
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+  REPO_DIR : ${{github.workspace}}
+  BUILD_DIR: ${{github.workspace}}/bin/builddir
+
+jobs:
+  build:
+    runs-on: [self-hosted, linux, ARM64]
+    permissions:
+      contents: read
+
+    strategy:
+      matrix:
+       include:
+          - COMPILER_CC: clang
+            COMPILER_PP: clang++
+            USE_PCH: ON
+            EXTRA_BUILD: "-DBUILD_AHBOT=ON -DBUILD_PLAYERBOTS=ON -DBUILD_SOLOCRAFT=ON "
+
+    steps:
+    
+      - name: Cleanup
+        run: |
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: ${{env.REPO_DIR}}
+          submodules: true
+
+      - name: Create Build Environment
+        run: |
+          echo "GITHUB_SHORT_REV=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "ARCHIVE_FILENAME=${{ github.event.repository.name }}-$(git rev-parse --short HEAD).zip" >> $GITHUB_ENV
+          echo "CC=${{matrix.COMPILER_CC}}" >> $GITHUB_ENV
+          echo "CXX=${{matrix.COMPILER_PP}}" >> $GITHUB_ENV
+          cmake -E make_directory ${{ env.BUILD_DIR }}
+
+      - name: Configure
+        env:
+          USE_PCH: ${{ matrix.USE_PCH }}
+          EXTRA_BUILD: ${{ matrix.EXTRA_BUILD }}
+        run: cmake -DBUILD_ELUNA=ON -DPCH=${{env.USE_PCH}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/bin/run ${{env.EXTRA_BUILD}}-B ${{env.BUILD_DIR}} -S ${{env.REPO_DIR}}
+
+      - name: Build
+        env:
+          MAKEFLAGS: "-j 3"
+        run: |
+            cmake --build ${{env.BUILD_DIR}} --config ${{env.BUILD_TYPE}}
+            cmake --install ${{env.BUILD_DIR}}
+
+  notify:
+    name: Discord Notification
+    runs-on: ubuntu-latest
+    permissions:
+      contents: none
+    needs: # make sure the notification is sent AFTER the jobs you want included have completed
+      - build
+    if: failure()
+
+    steps:
+      - name: Env
+        run: |
+          echo "GIT_BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+          echo "GIT_SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`" >> $GITHUB_ENV
+
+      - name: Notify
+        uses: rjstone/discord-webhook-notify@v1.1.1
+        with:
+          severity: error
+          description: |
+            **Linux Build Failed**
+          details: |
+            - **Branch:** ${{env.GIT_BRANCH}}
+            - **Pusher:** ${{github.event.pusher.name}}
+            - **Author:** ${{github.event.head_commit.author.name}}
+            - **Commit:** [${{github.repository}}/${{env.GIT_SHORT_SHA}}](${{github.server_url}}/${{ github.repository }}/commit/${{github.sha}})
+            - **Build Log:** [actions/runs/${{github.run_id}}](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}})
+          footer: CMaNGOS Developers Notified!
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
