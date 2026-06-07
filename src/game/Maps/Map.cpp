@@ -92,6 +92,11 @@ Map::~Map()
         transport->ResetMap();
         delete transport;
     }
+
+#ifdef BUILD_ELUNA
+    if (GetEluna())
+        sElunaMgr->Destroy(m_elunaInfo);
+#endif
 }
 
 uint32 Map::GetCurrentMSTime() const
