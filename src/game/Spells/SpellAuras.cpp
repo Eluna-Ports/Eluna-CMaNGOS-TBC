@@ -396,6 +396,7 @@ Aura::Aura(SpellEntry const* spellproto, SpellEffectIndex eff, int32 const* curr
 
 Aura::~Aura()
 {
+    m_scriptRef = nullptr;
     delete m_storage;
     delete m_spellmod;
 }
