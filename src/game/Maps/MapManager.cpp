@@ -58,7 +58,6 @@ void MapManager::Initialize()
     CreateContinents();
 
     int num_threads(sWorld.getConfig(CONFIG_UINT32_NUM_MAP_THREADS));
-
     if (num_threads > 0)
         m_updater.activate(num_threads);
 }
