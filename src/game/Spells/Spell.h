@@ -669,6 +669,8 @@ class Spell
         float GetSpellSpeed() const;
         bool IsDelayedSpell() const;
 
+        SpellEntry const* GetSpellProto() const { return m_spellInfo; }
+
         void UpdatePointers();                              // must be used at call Spell code after time delay (non triggered spell cast/update spell call/etc)
 
         static bool CheckTargetCreatureType(Unit* target, SpellEntry const* spellInfo);
@@ -842,6 +844,7 @@ class Spell
         void SetHelpfulThreatCoefficient(float coeff) { m_helpfulThreatCoeff = coeff; }
 
         MaNGOS::unique_weak_ptr<Spell> GetWeakPtr() const;
+        WeaponAttackType GetAttackType() const { return m_attackType; }
 
     protected:
         void SendLoot(ObjectGuid guid, LootType loottype, LockType lockType);
